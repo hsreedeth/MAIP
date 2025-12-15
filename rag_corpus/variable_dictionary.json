@@ -1,0 +1,211 @@
+{
+  "_meta": {
+    "source": "SUPPORT-II (Day-3 physiology, demographics, comorbidities)",
+    "notes": "Short, clinician-facing aliases with units. Encoded binaries (0/1) indicate presence=1 unless noted. Ordinal scales included where used."
+  },
+
+  "id": "Study patient identifier (internal).",
+  "eid": "Study patient identifier (internal).",
+
+  "age": {
+    "display_name": "Age",
+    "units": "years",
+    "notes": "Age at enrollment (baseline)."
+  },
+
+  "sex": {
+    "display_name": "Sex",
+    "value_map": { "1": "male", "0": "female" }
+  },
+
+  "race_white": "Race: White (1=yes).",
+  "race_black": "Race: Black (1=yes).",
+  "race_hispanic": "Race: Hispanic (1=yes).",
+  "race_asian": "Race: Asian (1=yes).",
+  "race_other": "Race: Other/Unknown (1=yes).",
+
+  "income": {
+    "display_name": "Household income bracket",
+    "scale": {
+      "1": "under $11k",
+      "2": "$11–$25k",
+      "3": "$25–$50k",
+      "4": ">$50k"
+    }
+  },
+
+  "edu": {
+    "display_name": "Education",
+    "units": "years",
+    "notes": "Years of formal education."
+  },
+
+  "dnr_no_dnr": "Do-Not-Resuscitate status: No DNR order (1=yes).",
+  "dnr_dnr_after_sadm": "DNR order placed after study admission (1=yes).",
+  "dnr_dnr_before_sadm": "DNR order already present before study admission (1=yes).",
+
+  "adlp_s": {
+    "display_name": "ADL (surrogate)",
+    "notes": "Activities of Daily Living surrogate (filled from ADL personal/social). Higher = more impairment."
+  },
+
+  "num.co": {
+    "display_name": "Number of comorbidities",
+    "units": "count"
+  },
+  "diabetes": "Comorbidity: Diabetes (1=yes).",
+  "dementia": "Comorbidity: Dementia (1=yes).",
+
+  "ca": {
+    "display_name": "Cancer status",
+    "scale": { "0": "no cancer", "1": "cancer", "2": "metastatic cancer" }
+  },
+
+  "dzgroup_arf_mosf": "Primary diagnosis group: Acute Respiratory Failure / Multiple Organ System Failure (1=yes).",
+  "dzgroup_chf": "Primary diagnosis group: Congestive Heart Failure (1=yes).",
+  "dzgroup_copd": "Primary diagnosis group: Chronic Obstructive Pulmonary Disease (1=yes).",
+  "dzgroup_lung_cancer": "Primary diagnosis group: Lung cancer (1=yes).",
+  "dzgroup_mosf_malig": "Primary diagnosis group: MOSF with malignancy (1=yes).",
+  "dzgroup_coma": "Primary diagnosis group: Coma (1=yes).",
+  "dzgroup_cirrhosis": "Primary diagnosis group: Cirrhosis (1=yes).",
+  "dzgroup_colon_cancer": "Primary diagnosis group: Colon cancer (1=yes).",
+
+  "dzclass_arf_mosf": "Disease class: ARF/MOSF (1=yes).",
+  "dzclass_copd_chf_cirrhosis": "Disease class: COPD/CHF/Cirrhosis (1=yes).",
+  "dzclass_cancer": "Disease class: Cancer (1=yes).",
+  "dzclass_coma": "Disease class: Coma (1=yes).",
+
+  "meanbp": {
+    "display_name": "Mean arterial pressure",
+    "units": "mmHg",
+    "notes": "Day-3 measurement."
+  },
+  "wblc": {
+    "display_name": "White blood cell count",
+    "units": "10^3/µL",
+    "notes": "Day-3."
+  },
+  "hrt": {
+    "display_name": "Heart rate",
+    "units": "beats/min",
+    "notes": "Day-3."
+  },
+  "resp": {
+    "display_name": "Respiratory rate",
+    "units": "breaths/min",
+    "notes": "Day-3."
+  },
+  "temp": {
+    "display_name": "Temperature",
+    "units": "°C",
+    "notes": "Day-3."
+  },
+  "pafi": {
+    "display_name": "PaO2/FiO2 ratio",
+    "units": "mmHg",
+    "notes": "Oxygenation index; lower = worse hypoxemia. Day-3."
+  },
+  "alb": {
+    "display_name": "Serum albumin",
+    "units": "g/dL",
+    "notes": "Day-3."
+  },
+  "bili": {
+    "display_name": "Serum bilirubin",
+    "units": "mg/dL",
+    "notes": "Day-3."
+  },
+  "crea": {
+    "display_name": "Serum creatinine",
+    "units": "mg/dL",
+    "notes": "Day-3."
+  },
+  "sod": {
+    "display_name": "Serum sodium",
+    "units": "mEq/L",
+    "notes": "Day-3."
+  },
+  "ph": {
+    "display_name": "Arterial pH",
+    "units": "",
+    "notes": "Day-3."
+  },
+  "glucose": {
+    "display_name": "Serum glucose",
+    "units": "mg/dL",
+    "notes": "Day-3."
+  },
+  "bun": {
+    "display_name": "Blood urea nitrogen",
+    "units": "mg/dL",
+    "notes": "Day-3."
+  },
+  "urine": {
+    "display_name": "Urine output (last 24h)",
+    "units": "mL",
+    "notes": "24 hours prior to Day-3 assessment."
+  },
+
+  "sps": {
+    "display_name": "SUPPORT Physiology Score",
+    "notes": "Composite severity score (higher = sicker)."
+  },
+  "aps": {
+    "display_name": "APACHE-III score",
+    "notes": "Acute Physiology score component (higher = sicker)."
+  },
+  "scoma": {
+    "display_name": "Coma score (Scoma)",
+    "notes": "SUPPORT coma scale on Day-3; lower ≈ deeper coma."
+  },
+  "avtisst": {
+    "display_name": "Average TISS score (days 3–25)",
+    "notes": "Therapeutic Intervention Scoring System; higher = more intensive care."
+  },
+
+  "sfdm2": {
+    "display_name": "Functional status (SFD-M2 category)",
+    "scale": {
+      "1": "no major deficits (M2 & SIP present)",
+      "2": "ADL ≥ 4 (≥5 if survived)",
+      "3": "SIP ≥ 30",
+      "4": "Coma or intubated",
+      "5": "<2 months follow-up"
+    }
+  },
+
+  "dnrday": {
+    "display_name": "Day of first DNR order",
+    "units": "study day",
+    "notes": "Negative if before study admission."
+  },
+
+  "slos": {
+    "display_name": "Study length of stay",
+    "units": "days"
+  },
+  "d.time": {
+    "display_name": "Follow-up time",
+    "units": "days"
+  },
+  "hday": {
+    "display_name": "Hospital days",
+    "units": "days"
+  },
+  "surv6m": {
+    "display_name": "6-month survival probability",
+    "units": "0–1"
+  },
+  "prg6m": {
+    "display_name": "6-month survival prognosis (clinical)",
+    "units": "0–1"
+  },
+  "totmcst": {
+    "display_name": "Total micro-cost",
+    "units": "USD (unit costs)",
+    "notes": "Negative values imputed to missing in preprocessing."
+  },
+
+  "death": "Death by study end (1=yes).",
+  "hospdead": "In-hospital death (1=yes)."
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Project Protocol CLI",
+  "description": "A terminal-styled project management dashboard for tracking the 4-week analysis and manuscript plan.",
+  "requestFramePermissions": []
+}

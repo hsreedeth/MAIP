@@ -1,0 +1,33 @@
+offload the generation to Colab / remote API just for the rulecards.
+
+export OPENAI_API_KEY=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
+
+
+
+Publication notes:
+
+Comparison of Methods: You state SNF-lite is superior based on internal metrics (Silhouette, ARI). However, internal metrics often favor the algorithm that fits the specific geometry of the metric. Did you compare them on external validity (predictive power for mortality) before selecting SNF?
+
+Clarify "SNF-lite": You mention a "simplified" implementation. You must be very transparent about what was removed or simplified, otherwise, reviewers may suspect you cut corners to force convergence.
+
+The Surrogate Gap: You used a decision tree to approximate the clusters. You reported ~74-90% fidelity. You need to explicitly state: What happens to the 10-26% of patients who are misclassified by the surrogate? Do they have worse outcomes? This "fidelity gap" is often where clinical AI tools fail.
+
+Statistical Significance: In the Cox models, your p-values are extremely small ($10^{-94}$). While impressive, ensure you have checked for data leakage. (e.g., Did any component of the APS score implicitly categorize the patient in a way that correlates perfectly with the cluster?)
+
+Dream?
+------
+
+Target C: Top-Tier Clinical/Digital Health Journals
+Targets: Lancet Digital Health, Nature Medicine, Critical Care Medicine.
+
+Feasibility: Low to Moderate (30%) with current data.
+
+The Barrier: They will reject based on the dataset age. SUPPORT-II represents a different era of medicine.
+
+How to Unlock: If you run this exact pipeline on MIMIC-IV (roughly 2008-2019 data), your feasibility jumps to 80-90%. The methodology is top-tier; it just needs modern data to be clinically relevant.
+
+
+--- Dec 13 . 2025 ---
+
+
+

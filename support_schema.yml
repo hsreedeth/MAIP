@@ -1,0 +1,110 @@
+
+# Data Schema for the SUPPORT-II Dataset
+# --------------------------------------
+
+# Data Source
+data_url: "https://hbiostat.org/data/"
+data_dictionary_url: "https://archive.ics.uci.edu/dataset/880/support2"
+
+# Column Definitions and Mappings
+# This section provides descriptions for each variable.
+
+variables:
+  # Demographics
+  age: { type: 'numeric', description: 'Age in years' }
+  sex: { type: 'categorical', description: 'Patient gender' }
+  race: { type: 'categorical', description: 'Patient race' }
+  income: { type: 'categorical', description: 'Annual income bracket' }
+  edu: { type: 'categorical', description: 'Years of education' }
+
+  # Physiology (Day 3)
+  meanbp: { type: 'numeric', description: 'Mean Arterial Pressure (mmHg)' }
+  wblc: { type: 'numeric', description: 'White Blood Cell count (K/uL)' }
+  hrt: { type: 'numeric', description: 'Heart rate (beats/minute)' }
+  resp: { type: 'numeric', description: 'Respiration rate (breaths/minute)' }
+  temp: { type: 'numeric', description: 'Temperature (Celsius)' }
+  pafi: { type: 'numeric', description: 'PaO2/FiO2 ratio (mmHg)' }
+  alb: { type: 'numeric', description: 'Albumin (gm/dL)' }
+  bili: { type: 'numeric', description: 'Bilirubin (mg/dL)' }
+  crea: { type: 'numeric', description: 'Creatinine (mg/dL)' }
+  sod: { type: 'numeric', description: 'Sodium (mEq/L)' }
+  ph: { type: 'numeric', description: 'Arterial pH' }
+  glucose: { type: 'numeric', description: 'Glucose (mg/dL)' }
+  bun: { type: 'numeric', description: 'Blood Urea Nitrogen (mg/dL)' }
+  urine: { type: 'numeric', description: 'Urine output (ml) over 24h prior' }
+
+  # Physiology Scores
+  sps: { type: 'numeric', description: 'SUPPORT physiology score' }
+  aps: { type: 'numeric', description: 'APACHE-III score' }
+  scoma: { type: 'numeric', description: 'Glasgow Coma Score on day 3' }
+  avtisst: { type: 'numeric', description: 'Avg TISS score (days 3-25)' }
+
+  # Comorbidities
+  dzgroup: { type: 'categorical', description: 'Disease group' }
+  dzclass: { type: 'categorical', description: 'Disease class' }
+  num.co: { type: 'numeric', description: 'Number of comorbidities' }
+  diabetes: { type: 'binary', description: 'Diabetes comorbidity flag' }
+  dementia: { type: 'binary', description: 'Dementia comorbidity flag' }
+  ca: { type: 'categorical', description: 'Cancer status (no, yes, metastatic)' }
+
+  # Outcomes & Other Variables (for context)
+  death: { type: 'binary', description: 'Death by study end (Dec 1994)' }
+  hospdead: { type: 'binary', description: 'Death in-hospital' }
+  slos: { type: 'numeric', description: 'Study Length of Stay (days)' }
+  d.time: { type: 'numeric', description: 'Days of follow-up' }
+  totmcst: { type: 'numeric', description: 'Total micro-cost' }
+  dnr: { type: 'categorical', description: 'Do Not Resuscitate order y/n'}
+  dnrday: { type: 'numeric', description: 'Day of first DNR order (< 0 if before study)'}
+  id: { type: 'identifier', description: 'Patient ID'} # not present in the raw dataset.
+
+# --- Feature View Definitions ---
+# Defines which columns belong to each view for the clustering analysis.
+
+feature_views:
+  C_view:
+    - num.co
+    - diabetes
+    - dementia
+    - ca
+    - dzgroup
+    - dzclass
+  P_view:
+    - age
+    - scoma
+    - avtisst
+    - sps
+    - aps
+    - meanbp
+    - wblc
+    - hrt
+    - resp
+    - temp
+    - pafi
+    - alb
+    - bili
+    - crea
+    - sod
+    - ph
+    - glucose
+    - bun
+    - urine
+  S_view:
+    - sex
+    - race
+    - income
+    - edu
+    - dnr
+
+validation_outcomes:
+    - death
+    - hospdead
+    - d.time
+    - slos
+    - hday
+    - sfdm2
+    - surv2m
+    - surv6m
+    - prg2m
+    - prg6m
+    - dnrday
+    - totmcst

@@ -1,0 +1,136 @@
+# OS/editor
+.DS_Store
+.Rhistory
+.RData
+.Rproj.user/
+*.swp
+*.tmp
+
+# Py/env
+venv/
+.venv/
+.env
+*.env
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Jup
+.ipynb_checkpoints/
+
+# Data 
+data/00_raw/
+data/01_processed/
+data/02_clusters/
+data/processed/
+data/raw/
+
+# Models
+models/
+*.joblib
+*.npy
+*.npz
+*.pkl
+*.pth
+*.pt
+*.gguf
+
+# Generated reports,figures,outputs
+reports/figures/
+reports/qc/
+reports/snf_*/
+reports/snf_high*/
+reports/snf_mid*/
+reports/snf_low*/
+reports/surrogate_*/
+reports/rulecards_final*/
+reports/rulecards_rag/
+reports/mmsp_Dtree/
+reports/tables/
+reports/eda.csv
+reports/characteristics_cohort.*
+reports/model_comparisons.csv
+reports/glossary*.json
+
+# RMD caches
+Manuscript/*_cache/
+Manuscript/*_files/
+PrimaryOutcomesCodebook/*_cache/
+PrimaryOutcomesCodebook/*_files/
+
+# misc.
+cloned/
+archive_llm/
+.git_backup/
+.DS_Store
+.Rhistory
+.RData
+.Rproj.user/
+*.swp
+*.tmp
+
+# Python/env
+venv/
+.venv/
+.env
+*.env
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data (raw/processed/derived)
+data/00_raw/
+data/01_processed/
+data/02_clusters/
+data/processed/
+data/raw/
+
+# Models / big artifacts
+models/
+*.joblib
+*.npy
+*.npz
+*.pkl
+*.pth
+*.pt
+*.gguf
+
+# Generated reports/figures/outputs
+reports/figures/
+reports/qc/
+reports/snf_*/
+reports/snf_high*/
+reports/snf_mid*/
+reports/snf_low*/
+reports/surrogate_*/
+reports/rulecards_final*/
+reports/rulecards_rag/
+reports/mmsp_Dtree/
+reports/tables/
+reports/eda.csv
+reports/characteristics_cohort.*
+reports/model_comparisons.csv
+reports/glossary*.json
+
+# R markdown caches and knitted artifacts
+Manuscript/*_cache/
+Manuscript/*_files/
+PrimaryOutcomesCodebook/*_cache/
+PrimaryOutcomesCodebook/*_files/
+PortfolioMain/**/*_cache/
+PortfolioMain/**/*_files/
+PortfolioMain/Archive/
+PortfolioMain/altV1.0/
+PortfolioMain/Pending/
+
+# Backups / clones / misc
+cloned/
+archive_llm/
+.git_backup/

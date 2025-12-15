@@ -1,0 +1,59 @@
+surrogate_tree.py run
+---------------------
+
+# High_MM
+python -m src.surrogate_tree \
+  --cview data/01_processed/C_view.csv \
+  --pview data/01_processed/P_view_scaled.csv \
+  --sview data/01_processed/S_view.csv \
+  --snf-assign reports/snf_high/tables/snf_assignments.csv \
+  --stratum High_MM \
+  --max-depth 4 --min-samples-leaf 0.01 --cv 5 \
+  --criterion gini --class-weight balanced \
+  --out-dir reports/surrogate_high
+
+# update (with new meta.son (for exporting model + label encoder + metadata)
+
+python -m src.surrogate_tree \
+  --cview data/01_processed/C_view.csv \
+  --pview data/01_processed/P_view_scaled.csv \
+  --sview data/01_processed/S_view.csv \
+  --snf-assign reports/snf_high/tables/snf_assignments.csv \
+  --stratum High_MM \
+  --max-depth 4 --min-samples-leaf 0.01 --cv 5 \
+  --criterion gini --balanced \
+  --out-dir reports/surrogate_high
+
+
+# Mid_MM
+python -m src.surrogate_tree \
+  --cview data/01_processed/C_view.csv \
+  --pview data/01_processed/P_view_scaled.csv \
+  --sview data/01_processed/S_view.csv \
+  --snf-assign reports/snf_mid/tables/snf_assignments.csv \
+  --stratum Mid_MM \
+  --max-depth 4 --min-samples-leaf 0.01 --cv 5 \
+  --criterion gini --class-weight balanced \
+  --out-dir reports/surrogate_mid
+
+# Low_MM
+python -m src.surrogate_tree \
+  --cview data/01_processed/C_view.csv \
+  --pview data/01_processed/P_view_scaled.csv \
+  --sview data/01_processed/S_view.csv \
+  --snf-assign reports/snf_low/tables/snf_assignments.csv \
+  --stratum Low_MM \
+  --max-depth 4 --min-samples-leaf 0.01 --cv 5 \
+  --criterion gini --class-weight balanced \
+  --out-dir reports/surrogate_low
+
+# Run LLM-prompter.
+
+python -m src.cli_rulecard \
+  --rules reports/surrogate_high/tables/tree_rules.json \
+  --glossary-used reports/surrogate_high/tables/glossary_used.json \
+  --glossary reports/glossary.json \
+  --model models/llama-3-8b-instruct-q4_k_m.gguf \
+  --out-dir reports/surrogate_high
+
+

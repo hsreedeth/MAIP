@@ -1,0 +1,479 @@
+---
+title: "Technical Documentation (III)"
+runningheader: "Primary Outcome analysis" # only for pdf output
+subtitle: "Primary Outcome analysis" # only for html output
+author: "Hari S. Sreedeth"
+date: "`r Sys.Date()`"
+output:
+  tufte::tufte_html: default
+  tufte::tufte_handout:
+    citation_package: natbib
+    latex_engine: xelatex
+  tufte::tufte_book:
+    citation_package: natbib
+    latex_engine: xelatex
+bibliography: skeleton.bib
+link-citations: yes
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(rstatix) # Great package for simplified statistical testing
+library(tidyr)
+library(readr)
+library(dplyr)
+library(purrr)
+library(stringr)
+library(survival)
+library(broom)
+library(ggplot2)
+library(forcats)
+# invalidate cache when the tufte version changes
+knitr::opts_chunk$set(cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+
+load_and_merge_views <- function(PROC, CLUS,
+                                 c_file = "C_view.csv",
+                                 p_file = "P_view_scaled.csv",
+                                 s_file = "S_view.csv",
+                                 y_file = "Y_validation.csv",
+                                 l_file = "snf_clusters_all.csv") {
+  
+  C <- readr::read_csv(file.path(PROC, c_file), show_col_types = FALSE)
+  P <- readr::read_csv(file.path(PROC, p_file), show_col_types = FALSE)
+  S <- readr::read_csv(file.path(PROC, s_file), show_col_types = FALSE)
+  Y <- readr::read_csv(file.path(PROC, y_file), show_col_types = FALSE)
+  L <- readr::read_csv(file.path(CLUS, l_file), show_col_types = FALSE)
+  
+  dfs <- list(C = C, P = P, S = S, Y = Y, L = L)
+  for (nm in names(dfs)) {
+    if (!("eid" %in% names(dfs[[nm]]))) stop(sprintf("eid missing in %s", nm))
+  }
+  
+  # inner-join C,P,S,Y on eid 
+  df <- reduce(list(C, P, S, Y), ~ inner_join(.x, .y, by = "eid"))
+  
+  # inner-join with L subset
+  if (!all(c("stratum", "label") %in% names(L))) {
+    stop("mmsp_clusters.csv must contain columns: stratum, label (and eid)")
+  }
+  
+  df <- inner_join(df, L %>% select(eid, stratum, label), by = "eid")
+  df
+}
+
+rm(df_all)
+```
+
+# Introduction
+
+The primary outcome was all-cause mortality, analysed as time-to-event from ICU day 3 (baseline) to death, with administrative censoring at the end of available follow-up and additional truncation at 365 days for the primary inferential models. Because the phenotypes were derived separately within multimorbidity strata, all outcome analyses were conducted in a stratum-specific manner (High_MM, Mid_MM, Low_MM), treating phenotype label as the exposure of interest and estimating prognosis conditional on stratum membership rather than pooling across strata.
+
+```{r echo = TRUE}
+proc <- "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/data/01_processed"
+clus <- "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/data/02_clusters"
+
+df_all <- load_and_merge_views(proc, clus,
+                                 c_file = "C_view.csv",
+                                 p_file = "P_view_scaled.csv",
+                                 s_file = "S_view.csv",
+                                 y_file = "Y_validation.csv",
+                                 l_file = "snf_clusters_all.csv")
+
+knitr::kable(count(df_all, stratum, label))
+knitr::kable(table(df_all$death))
+(summary(df_all$d.time))
+```
+
+### Truncate follow-up at 365 days
+
+The primary inferential models were multivariable Cox proportional hazards regressions fitted in R. For each stratum, we modelled hazard of death as a function of phenotype membership (categorical; reference phenotype prespecified within stratum) and adjusted for a minimal, pre-declared covariate set intended to control for key baseline prognostic differences at ICU day 3: age (continuous, standardised), sex, multimorbidity burden (continuous count of chronic conditions within stratum, standardised), and a single baseline severity metric reflecting acute physiological derangement at baseline (pre-specified as APS where available; otherwise an alternative severity score such as SPS/sfdm2). Continuous covariates were standardised to improve numerical stability and interpretability, and phenotype membership was encoded as a factor with one level omitted as the reference. All models were fitted on complete cases for the variables included in the given stratum model; the number of exclusions due to missingness was recorded.
+
+Create truncated time and event variables.
+
+
+```{r echo = TRUE}
+df_all <- df_all %>%
+  mutate(
+    t_365 = pmin(d.time, 365),
+    death_365 = ifelse(d.time <= 365 & death == 1, 1, 0)
+  )
+```
+
+### Create covariates: age, sex, multimorbidity, severity
+
+
+To minimise sensitivity to late follow-up non-proportionality and to align inference with a clinically interpretable horizon, follow-up for the primary models was truncated at 365 days by setting observed time to 
+𝑡
+∗
+=
+min
+⁡
+(
+𝑡
+,
+365
+)
+t
+∗
+=min(t,365) and event indicator to 
+𝛿
+∗
+=
+1
+(
+𝑡
+≤
+365
+∧
+𝛿
+=
+1
+)
+δ
+∗
+=1(t≤365∧δ=1). Model assumptions were assessed using Schoenfeld residual-based tests (cox.zph) and inspection of residual plots. Where evidence of non-proportional hazards persisted despite truncation, hazard ratios were interpreted as average effects over the first year rather than constant effects over the entire follow-up, and this limitation was explicitly acknowledged.
+
+_Concrete variables used in the analysis._
+
+- age (continuous, standardised)
+- sex (bin . treated as factor)
+- num.co (multimorbidity count . standardised)
+- aps or sps (baseline severity . standardised)
+
+```{r echo = TRUE}
+df_all <- df_all %>%
+  mutate(
+    age_std    = as.numeric(scale(age)),
+    numco_std  = as.numeric(scale(num.co)),
+    aps_std    = if ("aps" %in% names(df_all)) as.numeric(scale(aps)) else NA_real_,
+    sex_factor = factor(sex, levels = c(0,1), labels = c("female","male"))
+  )
+```
+
+### Set cluster factors and choose reference per stratum
+
+```{r echo = TRUE}
+df_all <- df_all %>%
+  mutate(
+    label = factor(label),
+    label = forcats::fct_relevel(label,
+                                 "High_MM_0", "High_MM_1", "High_MM_2",
+                                 "Mid_MM_0", "Mid_MM_1", "Mid_MM_2",
+                                 "Low_MM_0", "Low_MM_1", "Low_MM_2")
+  )
+
+# helper to run Cox per stratum
+run_cox_by_stratum <- function(df_all, stratum_name,
+                               time_var   = "t_365",
+                               event_var  = "death_365",
+                               sev_var    = "aps_std",
+                               out_prefix = "High_MM") {
+  
+  df_s <- df_all %>% filter(stratum == stratum_name)
+  
+  # Making sure cluster factor only has that stratum’s levels
+  df_s <- df_s %>%
+    mutate(
+      cluster = factor(label),      # rename for formula clarity
+      cluster = forcats::fct_drop(cluster)
+    )
+  
+  # Specify reference labels explicitly.
+  if (stratum_name == "High_MM") {
+    df_s <- df_s %>%
+      mutate(cluster = forcats::fct_relevel(cluster, "High_MM_0"))
+  }
+  if (stratum_name == "Mid_MM") {
+    df_s <- df_s %>%
+      mutate(cluster = forcats::fct_relevel(cluster, "Mid_MM_0"))
+  }
+  if (stratum_name == "Low_MM") {
+    df_s <- df_s %>%
+      mutate(cluster = forcats::fct_relevel(cluster, "Low_MM_0"))
+  }
+  
+  # formuala build v1: cluster + age + sex + multimorbidity + severity (may change later)
+  form <- as.formula(
+    paste0("survival::Surv(", time_var, ", ", event_var, ") ~ ",
+           "cluster + age_std + sex_factor + numco_std + ", sev_var)
+  )
+  
+  df_s <- df_s %>%
+    select(all_of(c(time_var, event_var,
+                    "cluster", "age_std", "sex_factor", "numco_std", sev_var))) %>%
+    na.omit()
+  
+  fit <- survival::coxph(form, data = df_s)
+  zph <- survival::cox.zph(fit)
+  
+  # Tidy HRs
+  tidy_hr <- broom::tidy(fit, exponentiate = TRUE, conf.int = TRUE) %>%
+    mutate(stratum = stratum_name,
+           model   = paste0("Cox_", stratum_name))
+  
+  list(
+    fit   = fit,
+    zph   = zph,
+    tidy  = tidy_hr,
+    data  = df_s
+  )
+}
+
+
+library(tibble)
+
+tidy_zph <- function(zph, stratum) {
+  z <- as.data.frame(zph$table) %>%
+    rownames_to_column("term") %>%
+    mutate(stratum = stratum)
+
+  # Standardise column names safely
+  if ("p" %in% colnames(z)) {
+    z <- z %>% rename(p_value = p)
+  }
+
+  if ("chisq" %in% colnames(z)) {
+    z <- z %>% rename(chisq = chisq)
+  }
+
+  if ("rho" %in% colnames(z)) {
+    z <- z %>% rename(rho = rho)
+  } else {
+    z$rho <- NA_real_
+  }
+
+  z %>%
+    mutate(is_global = term == "GLOBAL") %>%
+    select(stratum, term, is_global, rho, chisq, p_value)
+}
+
+
+```
+
+### Run for all three strata and generate CSVs.
+
+```{r echo = TRUE}
+OUT <- "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/tables"
+## run per stratum cox fits.
+
+res_high <- run_cox_by_stratum(df_all, "High_MM", out_prefix = "High_MM")
+res_mid  <- run_cox_by_stratum(df_all, "Mid_MM",  out_prefix = "Mid_MM")
+res_low  <- run_cox_by_stratum(df_all, "Low_MM",  out_prefix = "Low_MM")
+
+# Bind and export HR tables
+
+hr_all <- dplyr::bind_rows(res_high$tidy, res_mid$tidy, res_low$tidy)
+readr::write_csv(hr_all, file.path(OUT, "cox_snflite_clusters_adjusted.csv"))
+
+# Export per-stratum zph diagnostics
+
+zph_high_tbl <- tidy_zph(res_high$zph, "High_MM")
+zph_mid_tbl  <- tidy_zph(res_mid$zph,  "Mid_MM")
+zph_low_tbl  <- tidy_zph(res_low$zph,  "Low_MM")
+
+zph_all <- bind_rows(zph_high_tbl, zph_mid_tbl, zph_low_tbl)
+
+write.csv(zph_all, "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/tables/cox_zph_all.csv", row.names = FALSE)
+
+png("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/cox_zph_High_MM.png", width = 900, height = 900)
+plot(res_high$zph)
+dev.off()
+# repeat for Mid_MM, Low_MM
+
+
+# Quick veiw.
+
+knitr::kable(hr_all)
+```
+Model outputs were reported as hazard ratios (HRs) with 95% confidence intervals for each phenotype relative to the prespecified reference within each stratum, alongside a global test for the overall phenotype effect (likelihood ratio or Wald test from the fitted Cox model). As supporting descriptive evidence, we also generated unadjusted Kaplan–Meier survival curves and performed overall multi-group log-rank tests within each stratum using a separate Python workflow; these were treated as secondary summaries of survival separation rather than the primary basis for inference. In addition, we performed non-parametric Kruskal–Wallis tests to compare length of stay and total medical cost distributions across phenotypes within each stratum, and we generated phenotype profile tables (physiology medians and comorbidity prevalences) to contextualise observed prognostic differences. All model code, inputs, and outputs were versioned to ensure the analyses were fully reproducible.
+
+
+```{r echo = TRUE}
+library(forestplot)
+library(stringr) # Ensure stringr is loaded
+
+cox_df <- readr::read_csv("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/tables/cox_snflite_clusters_adjusted.csv")
+
+# 1. Inspect terms to ensure we capture them correctly
+# This helps debug if terms are named differently than expected
+print(unique(cox_df$term)) 
+
+plot_df <- cox_df %>%
+  # FIX 1: Search for "cluster" instead of "^cl_"
+  filter(str_detect(term, "cluster")) %>% 
+  mutate(
+    cluster = str_remove(term, "cluster"), # Clean up the term name
+    # FIX 2: Do NOT exponentiate. The CSV already contains HRs.
+    hr  = estimate, 
+    lci = conf.low,
+    uci = conf.high,
+    cluster = factor(cluster)
+  )
+
+# Check to ensure plot_df is not empty
+if(nrow(plot_df) == 0) stop("plot_df is empty! Check your regex filtering.")
+
+tbl_plot <- plot_df %>%
+  arrange(stratum, hr) %>%
+  mutate(
+    label = paste0(
+      cluster, 
+      "  HR ", round(hr, 2),
+      " (", round(lci, 2), "–", round(uci, 2), ")"
+    )
+  )
+
+# Prepare matrices for forestplot
+# We include NA for the header row
+labeltext <- rbind(
+  c("Cluster (vs reference)"),
+  as.matrix(tbl_plot$label)
+)
+
+mean  <- c(NA, tbl_plot$hr)
+lower <- c(NA, tbl_plot$lci)
+upper <- c(NA, tbl_plot$uci)
+
+# Generate the plot
+forestplot(
+  labeltext = labeltext,
+  mean  = mean,
+  lower = lower,
+  upper = upper,
+  zero  = 1,
+  xlog  = TRUE, # Keep this TRUE if you want log scale axis for HRs
+  boxsize = 0.25,
+  lineheight = unit(7, "mm"),
+  col = fpColors(
+    box = "black",
+    line = "black",
+    zero = "grey40"
+  ),
+  xlab = "Hazard ratio (log scale)",
+  txt_gp = fpTxtGp(
+    label = gpar(fontsize = 11),
+    ticks = gpar(fontsize = 10),
+    xlab  = gpar(fontsize = 12)
+  )
+)
+
+
+```
+`r margin_note("Table X. Forest plots showing the hazard ratio per stratum.")`
+
+```{r echo = TRUE}
+
+library(forestplot)
+library(dplyr)
+library(stringr)
+library(readr)
+
+# 1. Load the data
+# Ensure you point to the correct file path
+cox_df <- read_csv("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/tables/cox_snflite_clusters_adjusted.csv")
+
+# 2. Define a helper function to clean term names
+clean_term_label <- function(term) {
+  case_when(
+    str_detect(term, "cluster.*_1") ~ "Cluster 1",
+    str_detect(term, "cluster.*_2") ~ "Cluster 2",
+    term == "age_std"        ~ "Age (per SD)",
+    term == "sex_factormale" ~ "Male",
+    term == "numco_std"      ~ "Multimorbidity (per SD)",
+    term == "aps_std"        ~ "APS Score (per SD)",
+    TRUE                     ~ term
+  )
+}
+
+# 3. Define the plotting function
+plot_stratum_forest <- function(data, stratum_name) {
+  
+  # Filter for the specific stratum and prepare the data
+  plot_df <- data %>%
+    filter(stratum == stratum_name) %>%
+    mutate(
+      # Clean up the term names for the plot label
+      display_name = clean_term_label(term),
+      
+      # Since the input CSV already has exponentiated HRs, we use them directly
+      hr  = estimate,
+      lci = conf.low,
+      uci = conf.high
+    ) %>%
+    # Optional: Arrange specific order if needed (e.g., Clusters first)
+    # This relies on the original order being Clusters -> Covariates
+    mutate(
+      label = paste0(
+        display_name, 
+        "  HR ", sprintf("%.2f", hr),
+        " (", sprintf("%.2f", lci), "–", sprintf("%.2f", uci), ")"
+      )
+    )
+  
+  # Stop if no data found
+  if(nrow(plot_df) == 0) {
+    warning(paste("No data found for stratum:", stratum_name))
+    return(NULL)
+  }
+  
+  # Create the matrix for text labels (Header + Data)
+  labeltext <- rbind(
+    c(paste0("Variable (", stratum_name, ")")),
+    as.matrix(plot_df$label)
+  )
+  
+  # Create the data vectors (Header gets NA)
+  mean  <- c(NA, plot_df$hr)
+  lower <- c(NA, plot_df$lci)
+  upper <- c(NA, plot_df$uci)
+  
+  # Generate the forest plot
+  forestplot(
+    labeltext = labeltext,
+    mean  = mean,
+    lower = lower,
+    upper = upper,
+    zero  = 1,
+    xlog  = TRUE,  # Log scale for Hazard Ratios
+    boxsize = 0.25,
+    lineheight = unit(7, "mm"),
+    title = paste("Forest Plot:", stratum_name),
+    col = fpColors(
+      box = "black",
+      line = "black",
+      zero = "grey40"
+    ),
+    xlab = "Hazard Ratio (log scale)",
+    txt_gp = fpTxtGp(
+      label = gpar(fontsize = 11),
+      ticks = gpar(fontsize = 10),
+      xlab  = gpar(fontsize = 12),
+      title = gpar(fontsize = 14, fontface = "bold")
+    )
+  )
+}
+```
+
+**Mid Multimorbidity Stratum (Mid_MM):**
+In contrast to the High stratum, the reference phenotype (Mid_MM_0) appeared to be the lowest-risk group. Mid_MM_1 was associated with the highest risk of death (HR 1.87, 95% CI 1.65–2.12, $P < 0.001$), followed by Mid_MM_2 (HR 1.30, 95% CI 1.14–1.48, $P < 0.001$)3. Age and acute severity remained strong predictors, while sex and multimorbidity count were not statistically significant in this stratum4.
+```{r echo = TRUE}
+# Plot 1: High Multimorbidity Stratum
+plot_stratum_forest(cox_df, "High_MM")
+```
+
+**Mid Multimorbidity Stratum (Mid_MM):**
+In contrast to the High stratum, the reference phenotype (Mid_MM_0) appeared to be the lowest-risk group. Mid_MM_1 was associated with the highest risk of death (HR 1.87, 95% CI 1.65–2.12, $P < 0.001$), followed by Mid_MM_2 (HR 1.30, 95% CI 1.14–1.48, $P < 0.001$)3. Age and acute severity remained strong predictors, while sex and multimorbidity count were not statistically significant in this stratum4.
+```{r echo = TRUE}
+# Plot 2: Mid Multimorbidity Stratum
+plot_stratum_forest(cox_df, "Mid_MM")
+```
+
+**Low Multimorbidity Stratum (Low_MM)**:This stratum displayed the most distinct separation between phenotypes. Compared to the reference (Low_MM_0), Low_MM_1 represented a distinct high-risk phenotype with more than a two-fold increase in mortality risk (HR 2.36, 95% CI 2.07–2.70, $P < 0.001$)5. Conversely, Low_MM_2 was associated with a significant protective effect (HR 0.59, 95% CI 0.53–0.66, $P < 0.001$)6. Notably, multimorbidity count remained a significant predictor of death in this stratum (HR 1.66 per SD), unlike in the High and Mid strata7.
+```{r echo = TRUE}
+# Plot 3: Low Multimorbidity Stratum
+plot_stratum_forest(cox_df, "Low_MM")
+```

@@ -1,0 +1,51 @@
+maip-support-phenotyping/
+├── .gitignore             # Specifies intentionally untracked files to ignore
+├── README.md              # High-level project overview, setup, and usage instructions
+├── LICENSE                # Project software license (e.g., MIT)
+├── requirements.txt         # Python package dependencies for pip
+├── environment.yml        # Conda environment dependencies
+│
+├── data/
+│   ├── 00_raw/            # Immutable raw data
+│   │   └── support2.csv
+│   └── 01_processed/      # Cleaned, imputed, and processed data
+│       ├── support_imputed.csv
+│       ├── C_view.csv
+│       ├── P_view.csv
+│       └── S_view.csv
+│
+├── notebooks/             # Jupyter notebooks for exploration and experimentation (EDA)
+│   ├── 01_eda_and_preprocessing.ipynb
+│   └── 02_clustering_experiments.ipynb
+│
+├── src/                   # Source code for the main analysis pipeline
+│   ├── __init__.py
+│   ├── make_views.py       # Script for data cleaning, imputation, and view creation
+│   ├── run_mmsp.py         # Path A: Multimorbidity-Stratified Phenotyping
+│   ├── 11_run_snf.py          # Path B: Multi-View Fusion
+│   ├── 20_select_clusters.py  # Stability analysis and final phenotype selection
+│   ├── 30_validate_outcomes.py # External validation (KM curves, LOS/cost tests)
+│   ├── 40_train_surrogate.py  # Training the interpretable surrogate model
+│   ├── 50_generate_rulecard.py# LLM-based rulecard and flowchart generation
+│   └── utils.py             # Helper functions (e.g., plotting, custom metrics)
+│
+├── models/                        # Trained models and related artifacts
+│   ├── final_cluster_model.pkl    # The chosen clustering object (e.g., KMedoids)
+│   ├── surrogate_tree.pkl         # The trained decision tree surrogate
+│   └── llama-3-8b-q4.gguf         # The quantized LLM (or a pointer to it)
+│
+└── reports/               # Final project outputs
+    ├── figures/  
+    │   ├── qc/
+    │	│   ├── alb_qc_plot.png             
+    │	│   ├── pafi_qc_plot.png               
+    │   │   ├── ph_qc_plot.png
+    │   │   └── resp_qc_plot.png                            
+    │   ├── famd_plot.png
+    │   ├── kaplan_meier_survival.png
+    │   └── phenotype_profiles.png
+    ├── tables/ 
+    |   ├── cluster_profiles_summary.csv             
+    |   ├── cox_summary.csv              
+    |   └── KM_logrank_summary.csv 
+    └── article.md         # Draft of the project report (prospective)

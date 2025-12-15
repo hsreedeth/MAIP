@@ -1,0 +1,2016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Project MAIP – Portfolio by Hari S. Sreedeth</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #f7f1e8;
+      --text: #2c2c2c;
+      --muted: #8f8a82;
+      --accent: #111111;
+      --divider: #e3d7c6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, system-ui, BlinkMacSystemFont, "SF Pro Text",
+        "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    main {
+      max-width: 1120px;
+      margin: 72px auto 120px;
+      padding: 0 32px;
+    }
+
+    hr {
+      border: 0;
+      border-top: 1px solid var(--divider);
+      margin: 40px 0 32px;
+    }
+        /* --- Sidenote Base Layout --- */
+    .sidenote {
+    position: absolute;
+    right: -150px;       /* distance into the right margin */
+    width: 220px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #6b6b6b;
+    padding-top: 4px;
+    }
+
+    /* Place sidenotes relative to the paragraph container */
+    .intro-section {
+    position: relative;
+    }
+
+    /* The small superscript number in the text */
+    .sidenote-ref {
+    font-size: 0.8em;
+    vertical-align: super;
+    padding-left: 2px;
+    cursor: pointer;
+    color: #777;
+    }
+
+    /* Number displayed inside the sidenote */
+    .sidenote-number {
+    font-weight: bold;
+    padding-right: 4px;
+    }
+
+    /* Links inside notes */
+    .sidenote a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    }
+
+        /* 1. The Grid Container */
+    .pca-grid {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    /* --- BREAKOUT FIX --- */
+    
+    /* 1. Keep it big */
+    width: 95vw;
+    max-width: 1400px; /* Capped to prevent it getting too huge on iMacs */
+    
+    /* 2. Center it relative to the viewport, not the text */
+    position: relative;
+    
+    /* CHANGE THIS VALUE: 
+        50% centers on the text. 
+        60% or 65% pushes it right (into the empty sidenote space). 
+        Try 60% first. */
+    left: 100%; 
+    
+    transform: translateX(-50%);
+    
+    /* 3. Safety net: Prevent it from touching the absolute screen edge */
+    margin-left: 10px; 
+    }
+
+    /* 2. The Cards */
+    .pca-card {
+    flex: 1; /* Distribute space equally */
+    min-width: 0; /* Prevents flex items from refusing to shrink if needed */
+    }
+
+    /* 3. The Images */
+    .pca-card-image {
+    width: 100%;
+    height: auto;
+    display: block;
+    }
+
+    /* 4. Responsive Safety Net (Mobile) */
+    /* On small screens, stack them so they don't become microscopic */
+    @media (max-width: 768px) {
+    .pca-grid {
+        flex-direction: column;
+        width: 100%; /* Reset width to normal container */
+        left: auto;
+        transform: none;
+    }
+    }
+
+
+    /* --- Responsive behaviour --- */
+    @media (max-width: 1100px) {
+    .sidenote {
+        position: static;
+        width: 100%;
+        margin-top: 6px;
+        padding: 6px 0;
+        border-left: 3px solid #ddd;
+        padding-left: 10px;
+    }
+    }
+
+    .heatmap-strip {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+    position: relative; /* Establish context */
+  }
+
+  .heatmap-strip .section-heading {
+    margin-bottom: 0.75rem;
+  }
+
+  .heatmap-strip .section-lead {
+    max-width: 34rem;
+    margin-bottom: 2.5rem;
+  }
+
+  /* 2. The Grid Container - The "Shifted Breakout" */
+  .heatmap-grid {
+    display: flex;
+    gap: 1.5rem; /* Space between maps */
+    align-items: flex-start; /* Aligns tops of images */
+    justify-content: center;
+
+    /* --- BREAKOUT LOGIC --- */
+    width: 95vw;          /* Take up most of the screen width */
+    max-width: 1400px;    /* Cap width on very large screens */
+    
+    position: relative;
+    
+    /* This centers the grid relative to the SCREEN, not the text column.
+       We use 60% instead of 50% to nudge it right, away from the left edge 
+       where your text column starts. */
+    left: 105%; 
+    transform: translateX(-50%);
+  }
+  
+
+  /* 3. The Figures */
+  .heatmap-grid figure {
+    flex: 1;           /* Each image takes equal width */
+    min-width: 0;      /* Prevents flexbox sizing errors */
+    margin: 0;
+    text-align: center;
+  }
+
+  /* 4. The Images */
+  .heatmap-grid img {
+    width: 100%;
+    height: auto;
+    display: block;
+    /* box-shadow: 0 4px 6px rgba(0,0,0,0.05); Optional: Adds subtle depth */
+  }
+
+  /* 5. The Captions */
+  .heatmap-caption {
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #7c7165;
+  }
+
+  /* 6. Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .heatmap-grid {
+      flex-direction: column;
+      width: 100%;
+      left: auto;
+      transform: none;
+    }
+    
+    .heatmap-grid figure {
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+  }
+
+  /* --- SNF SPECIFIC STYLES --- */
+
+.snf-strip {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  position: relative;
+}
+
+.snf-strip .section-heading {
+  margin-bottom: 0.75rem;
+}
+
+.snf-strip .section-lead {
+  max-width: 34rem;
+  margin-bottom: 2.5rem;
+}
+
+/* The "Relative Expansion" Grid - Exclusive to SNF */
+.snf-grid {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  justify-content: center;
+
+  /* Force this grid to be wider than its parent text column */
+  width: 110%;
+  
+  /* Pull it left to balance the extra width */
+  margin-left: -15%;
+  
+  position: relative;
+  left: 10%;
+}
+
+.snf-grid figure {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+}
+
+.snf-grid img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.snf-caption {
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #7c7165;
+}
+
+/* Mobile Safety Net */
+@media (max-width: 768px) {
+  .snf-grid {
+    flex-direction: column;
+    width: 100%;
+    margin-left: 0;
+  }
+  .snf-grid figure {
+    margin-bottom: 2rem;
+  }
+}
+
+    /* Strip Spacing */
+    .network-strip {
+        padding-top: 4rem;
+        padding-bottom: 4rem;
+        position: relative;
+    }
+
+    .network-strip .section-lead {
+        max-width: 34rem;
+        margin-bottom: 2.5rem;
+    }
+
+    /* THE GRID: Shifted Breakout Logic */
+    .network-grid {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end; /* Aligns images to the bottom if heights differ */
+        justify-content: center;
+
+        /* Breakout Dimensions */
+        width: 95vw;
+        max-width: 1400px;
+        
+        position: relative;
+        left: 50%; /* Pushes grid slightly right to balance sidenote column */
+        transform: translateX(-50%);
+    }
+
+    /* Figure Wrapper */
+    .network-grid figure {
+        flex: 1;
+        min-width: 0;
+        margin: 0;
+        text-align: center;
+    }
+
+    /* Image Styling */
+    .network-grid img {
+        width: 100%;
+        height: auto;
+        display: block;
+        /* No border or shadow, just the clean network */
+    }
+
+    /* Caption Styling */
+    .network-caption {
+        margin-top: 0.75rem;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: #7c7165;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+        .network-grid {
+        flex-direction: column;
+        width: 100%;
+        left: auto;
+        transform: none;
+        }
+        .network-grid figure {
+        width: 100%;
+        margin-bottom: 2rem;
+        }
+    }
+
+    .snf-grid {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: space-between;
+    
+    /* Viewport-relative centering */
+    width: 95vw;
+    max-width: 1400px;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    margin-left: 0;
+    }
+
+    .snf-grid figure {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    text-align: center;
+    }
+
+    .snf-grid img {
+    width: 100%;
+    height: auto;
+    display: block;
+    }
+
+    .snf-caption {
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #7c7165;
+    }
+
+    /* Top bar / brand */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 80px;
+    }
+
+    .brand {
+      font-size: 40px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .tagline {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      text-align: right;
+      max-width: 360px;
+      line-height: 1.4;
+    }
+
+    /* Intro */
+    .intro-heading {
+      font-size: 40px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      margin-top: 120px;
+      color: var(--accent);
+    }
+
+    .intro-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr)); /* 50 / 50 split */
+        column-gap: 64px;  /* or whatever spacing you like */
+    }
+
+    .intro-title {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .intro-role {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .intro-text p {
+      margin: 0 0 10px;
+      line-height: 1.6;
+      font-size: 15px;
+      /* text-align: justify;
+      text-justify: inter-word;   nicer spacing in some browsers */
+    }
+
+    /* Section heading */
+    .section-heading {
+      font-size: 32px;
+      font-weight: 500;
+      margin: 80px 0 24px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .section-lead {
+      max-width: 720px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    /* Services / capabilities */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 32px;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .service-block-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .service-block p {
+      margin: 0;
+      color: var(--text);
+    }
+
+    /* Phase matrix */
+    .phase-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 24px;
+      font-size: 14px;
+    }
+
+    .phase-table th,
+    .phase-table td {
+      padding: 10px 4px;
+      text-align: left;
+      border-bottom: 1px solid var(--divider);
+    }
+
+    .phase-table th:first-child,
+    .phase-table td:first-child {
+      padding-left: 0;
+    }
+
+    .phase-table th {
+      font-weight: 500;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+    }
+
+    .phase-label {
+      white-space: nowrap;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .skill-name {
+      font-size: 14px;
+    }
+
+    .dot-cell {
+      text-align: center;
+      width: 64px;
+    }
+
+    .dot {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .dot--active {
+      background: #111111;
+    }
+
+    /* Projects */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 32px 24px;
+      margin-top: 32px;
+    }
+
+    .project-card {
+      padding: 6px 0;
+      border-top: 1px solid var(--divider);
+    }
+
+    .project-code {
+      font-size: 32px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+    }
+
+    .project-name {
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .project-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .project-description {
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 10px;
+      color: var(--text);
+    }
+
+    /* Contact */
+    .contact-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+
+    .contact-label {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.18);
+    }
+
+    a:hover {
+      border-bottom-color: rgba(0, 0, 0, 0.4);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      main {
+        margin-top: 40px;
+        padding: 0 20px 72px;
+      }
+      .top-bar {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .intro-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .services-grid {
+        grid-template-columns: 1fr 1fr;
+        row-gap: 40px;
+      }
+      .projects-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .services-grid {
+        grid-template-columns: 1fr;
+      }
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+      .section-heading {
+        font-size: 26px;
+      }
+      .intro-heading {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+<main>
+
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="brand">Multimorbidity-Anchored ICU Phenotypes <br>(MAIP)</div>
+    <div class="tagline">
+    A Dual-Approach Unsupervised Learning Strategy with <br>RAG-Assisted Translation of Surrogate Rules
+    </div>
+  </div>
+
+            <h1 class="intro-title" id="intro">Hari S. Sreedeth</h1>
+      <div class="intro-role">
+        Health Data Scientist &nbsp;·&nbsp; Statistical Machine Learning
+      </div>
+
+                  <h2 class="service-block" id="service-block-title">Context</h2>
+      <div class="service-block-title">
+        Problem: ML models are accurate but opaque. Doctors don't trust them.<br>
+<br>
+        Solution: I built a pipeline that uses high-complexity ML to find patterns, but translates them into transparent, rule-based logic (Rulecards) that a human can audit, complete with a QC layer that mathematically guarantees the explanation matches the model.
+      </div>
+
+  <!-- Introduction -->
+  <div class="intro-heading">Introduction</div>
+  <hr />
+
+  <section class="intro-grid" aria-labelledby="intro">
+    <div>
+      <div class="intro-text">
+        <p>
+Critically ill patients arriving in intensive care rarely fit neat templates. Even within a single ICU, patients differ widely in age, comorbidity burden, physiology and social context. This heterogeneity makes it hard to reason about prognosis, compare like with like, or decide which treatment strategies are most appropriate.
+        </p>
+        <p>
+Unsupervised machine learning is an obvious tool for this problem, and a large body of ICU phenotyping work already exists. However, in practice many clustering pipelines are dominated by the blunt signal of multimorbidity: patients with more chronic disease, and who are older, simply get grouped together. The resulting “phenotypes” often mirror gradients in age and comorbidity count rather than revealing distinct, acute physiological patterns that could plausibly change clinical decisions.
+        </p>
+        <div class="sidenote" id="sn1">
+            <span class="sidenote-number">1</span>
+            See GitHub repository: <a href="https://github.com/hsreedeth/ProjectMAIP" target="_blank">Project-MAIP</a>.
+        </div>
+        <p>
+The Multimorbidity-Anchored ICU Phenotypes (MAIP) project<span class="sidenote-ref" id="sn2-ref">1</span> is my attempt to tackle that limitation in a principled, end-to-end way using the SUPPORT-II cohort (over 9,000-patient sample from the Study to Understand Prognoses, Preferences, Outcomes and Risks of Treatment)<span class="sidenote-ref" id="sn1-ref">2</span>. I designed MAIP as a full pipeline that (i) explicitly separates chronic disease burden from acute physiology and (ii) carries the resulting clusters all the way through to a human-readable bedside tool. 
+        </p>
+        <div class="sidenote" id="sn2">
+            <span class="sidenote-number">2</span>
+            Vanderbilt University Department of Biostatistics,<br>Professor Frank Harrell 2022 <a href="https://hbiostat.org/data/" target="_blank">Support-II</a>.
+        </div>
+      </div>
+    </div>
+
+    <div class="intro-text">
+      <p>
+Methodologically, MAIP combines two complementary unsupervised pathways: a multimorbidity-stratified phenotyping route (MMSP) and a simplified multi-view Similarity Network Fusion implementation (SNF-lite). Once stable clusters are identified, I train a sparse decision-tree surrogate model to approximate the cluster assignments. The tree’s branch structure is exported as structured JSON rules, which are then translated into a clinician-facing rulecard and ASCII flowchart via a retrieval-augmented generation (RAG) pipeline running on remotely through chatgpt-4.1-mini model (with 7B parameters). The RAG layer is grounded in a curated corpus of variable definitions, phenotype summaries and style guidance, and is coupled with programmatic checks to ensure that the textual rulecard remains logically faithful to the underlying JSON rules.
+      </p>
+      <p>
+        The project therefore has two concrete goals:
+      </p>
+      <p>
+        • <strong>Derive</strong> ICU phenotypes that are not just “more sick vs less sick” along a comorbidity axis<br />
+        • <strong>Demonstrate</strong> a robust, versioned , maintainable & auditable pathway from unsupervised clustering to a deployable, human-readable decision tool.<br />
+      </p>
+    </div>
+  </section>
+
+  <!-- Capabilities / Services -->
+  <h2 class="section-heading">Project Overview</h2>
+  <p class="section-lead">
+    I treat each project as a combination of research and
+    translation. Below is how that played out in MAIP similar to my other related work.
+  </p>
+
+  <section class="services-grid" aria-label="Overview">
+    <div class="service-block">
+      <div class="service-block-title">Study Design & Data Source</div>
+      <p>
+        Retrospective cohort analysis of ~9,000 critically ill adults from the 
+        multicentre SUPPORT-II dataset. Includes demographics, comorbidities,
+        physiological measurements at ICU admission, severity scores and 
+        longitudinal outcomes. Only features required for clustering are used; 
+        outcome variables (mortality, length of stay) are held out for 
+        independent validation.
+      </p>
+    </div>
+
+    <div class="service-block">
+      <div class="service-block-title">Feature Engineering &amp; Views</div>
+      <p>
+        Constructed a feature matrix organised into three clinical views:
+        (1) chronic disease burden (C-View), (2) acute physiology (P-View), and (3) socio-contextual 
+        characteristics (S-View). Categorical variables are encoded interpretably and 
+        continuous variables are transformed where needed and standardised. 
+        Missing data are imputed using an outcome-free recipe, with optional 
+        missingness indicators. Outcomes live in a separate Y-matrix.
+      </p>
+    </div>
+
+    <div class="service-block">
+      <div class="service-block-title">Phenotyping: MMSP & SNF-lite</div>
+      <p>
+        Implemented two complementary unsupervised pipelines. MMSP stratifies patients by multimorbidity level, runs PCA on the z-scaled physiology view within each stratum, and applies PAM k-medoids on Euclidean distances in the PCA space. SNF-lite constructs view-specific similarity matrices (Gower / RBF), fuses them with a lightweight Similarity Network Fusion routine, and uses spectral clustering on the fused graph. Candidate cluster numbers (K) are chosen using bootstrap stability metrics, standard internal indices and clinical interpretability.
+      </p>
+    </div>
+
+    <div class="service-block">
+      <div class="service-block-title">Surrogate Decision Tree</div>
+      <p>
+        Trained a shallow, constrained decision-tree surrogate on a curated set 
+        of interpretable variables to approximate final cluster assignments. 
+        Tuned depth and node-size to balance fidelity and simplicity. Evaluated 
+        performance using accuracy, macro-averaged F1 and confusion matrices to 
+        identify phenotypes that are intrinsically hard to separate with simple 
+        rules. Exported the final tree into a strict JSON rule schema capturing 
+        features, thresholds, operators and phenotype labels.
+      </p>
+    </div>
+    <div class="service-block">
+      <div class="service-block-title">RAG-Assisted Translation & QC</div>
+      <p>
+        Used a retrieval-augmented pipeline with remote GPT-4.1-mini to convert
+        JSON surrogate-tree rules into clinician-facing rulecards and ASCII
+        flowcharts. For each phenotype, the prompt combines the canonical JSON
+        rules with a curated variable dictionary, analytically derived phenotype
+        summaries and a style guide. Prompts enforce “no new logic” and a
+        one-to-one mapping from JSON to text. Programmatic checks compare JSON
+        rules and textual rules on synthetic patient profiles and verify
+        consistency of feature names, units and phenotype labels. All JSON,
+        prompts and model outputs are versioned for auditability.
+      </p>
+    </div>
+  </section>
+
+  <img
+  src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PortfolioMain/Overview Schematic.svg"
+  alt="Overview schematic"
+  style="display:block; margin-left:auto; max-width:100%; height:auto;"
+>
+
+  <!-- Phase matrix
+  <h2 class="section-heading">Where I Add Value</h2>
+  <p class="section-lead">
+    Rough mapping of my skills to the main phases of a data-science project:
+    from early design through to deployment-ready documentation.
+  </p>
+
+  <table class="phase-table" aria-label="Skills across project phases">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Design</th>
+        <th>Build</th>
+        <th>Validate</th>
+        <th>Communicate</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <div class="skill-name">Study design &amp; protocol writing</div>
+          <div class="phase-label">Question, cohorts, outcomes</div>
+        </td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+        <td class="dot-cell"><span class="dot"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+      </tr>
+      <tr>
+        <td>
+          <div class="skill-name">Data engineering &amp; harmonisation</div>
+          <div class="phase-label">ICU events, risk factors, wide/long views</div>
+        </td>
+        <td class="dot-cell"><span class="dot"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+        <td class="dot-cell"><span class="dot"></span></td>
+      </tr>
+      <tr>
+        <td>
+          <div class="skill-name">Unsupervised phenotyping</div>
+          <div class="phase-label">LCA, SNF-lite, cluster stability</div>
+        </td>
+        <td class="dot-cell"><span class="dot"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+        <td class="dot-cell"><span class="dot"></span></td>
+      </tr>
+      <tr>
+        <td>
+          <div class="skill-name">Prognostic &amp; risk modelling</div>
+          <div class="phase-label">Cox PH, competing risks, calibration</div>
+        </td>
+        <td class="dot-cell"><span class="dot"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+        <td class="dot-cell"><span class="dot"></span></td>
+      </tr>
+      <tr>
+        <td>
+          <div class="skill-name">LLM + RAG decision support</div>
+          <div class="phase-label">Surrogate trees, rulecards, safety rails</div>
+        </td>
+        <td class="dot-cell"><span class="dot"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+        <td class="dot-cell"><span class="dot"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+      </tr>
+      <tr>
+        <td>
+          <div class="skill-name">Reproducible research</div>
+          <div class="phase-label">Versioned code, docs, pipelines</div>
+        </td>
+        <td class="dot-cell"><span class="dot"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+        <td class="dot-cell"><span class="dot dot--active"></span></td>
+      </tr>
+    </tbody>
+  </table> -->
+
+  <!-- Methods -->
+  <h2 class="section-heading">Data source, Feature engineering and View construction</h2>
+
+  <section class="intro-grid" aria-labelledby="intro">
+    <div>
+      <div class="intro-text">
+        <p>
+I worked with the SUPPORT-II ICU cohort (~9,000 critically ill adults from multiple North American centres in the late 1980s–1990s), which includes rich baseline demographics, comorbidities, physiology at ICU admission, prognostic scores and follow-up outcomes (mortality, length of stay, resource use). For phenotyping, I built a clean feature matrix X and a held-out outcome matrix Y: X feeds the unsupervised models and surrogate trees, while Y (in-hospital and 5-year mortality, time-to-event and utilisation) is used only for external validation, never for clustering. X is organised into three clinically meaningful views: a comorbidity view (num.co, disease indicators, grouped diagnoses), a physiology view (vitals, labs, blood gases, severity scores., transformed and z-scaled), and a socio-contextual view (age, sex, SES proxies, treatment context). Categorical variables are encoded to preserve interpretability, and missing data are handled by an outcome-blind imputation recipe with documented seeds and predictors. This design gives me a reproducible, view-structured feature space for discovering phenotypes and a separate outcome layer for testing whether those phenotypes actually improve prognostic performance.
+        </p>
+      </div>
+    </div><br>
+  </section>
+<h3 class="section-heading">Variable Summary</h3>
+<p class="section-lead">
+  Key baseline characteristics of the SUPPORT-II cohort. Continuous variables are
+  summarised as mean&nbsp;&plusmn;&nbsp;SD and median (IQR); categorical variables as
+  N&nbsp;(%).
+</p><br>
+
+<table class="phase-table variable-table" aria-label="Variable summary table">
+  <thead>
+    <tr>
+      <th>Characteristic</th>
+      <th>N / Mean&nbsp;&plusmn;&nbsp;SD</th>
+      <th>Median (IQR)</th>
+      <th>Dtype</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Demographics -->
+    <tr class="section-row">
+      <td colspan="4">Demographics</td>
+    </tr>
+    <tr>
+      <td>Age (years)</td>
+      <td>62.65&nbsp;&plusmn;&nbsp;15.59</td>
+      <td>64.86 (52.80,&nbsp;73.99)</td>
+      <td>Continuous (slightly skewed)</td>
+    </tr>
+    <tr>
+      <td>Male sex</td>
+      <td>5123 (56.27%)</td>
+      <td>&mdash;</td>
+      <td>Categorical</td>
+    </tr>
+    <tr>
+      <td>Race: White</td>
+      <td>7190 (78.97%)</td>
+      <td>&mdash;</td>
+      <td>Categorical</td>
+    </tr>
+    <tr>
+      <td>Race: Black</td>
+      <td>1391 (15.28%)</td>
+      <td>&mdash;</td>
+      <td>Categorical</td>
+    </tr>
+    <tr>
+      <td>Income (Level 1–4)</td>
+      <td>1.94&nbsp;&plusmn;&nbsp;0.89</td>
+      <td>2.0 (1.0,&nbsp;2.0)</td>
+      <td>Ordinal (skewed)</td>
+    </tr>
+
+    <!-- Multimorbidity & Chronic Conditions -->
+    <tr class="section-row">
+      <td colspan="4">Multimorbidity &amp; Chronic Conditions</td>
+    </tr>
+    <tr>
+      <td>Number of comorbidities (num.co)</td>
+      <td>1.87&nbsp;&plusmn;&nbsp;1.34</td>
+      <td>2.0 (1.0,&nbsp;3.0)</td>
+      <td>Count (skewed)</td>
+    </tr>
+    <tr>
+      <td>Cancer (ca)</td>
+      <td>0.55&nbsp;&plusmn;&nbsp;0.81</td>
+      <td>0.0 (0.0,&nbsp;1.0)</td>
+      <td>Index / binary</td>
+    </tr>
+    <tr>
+      <td>Diabetes mellitus</td>
+      <td>1789 (19.65%)</td>
+      <td>&mdash;</td>
+      <td>Binary</td>
+    </tr>
+    <tr>
+      <td>Chronic heart failure (dzgroup_chf)</td>
+      <td>1387 (15.23%)</td>
+      <td>&mdash;</td>
+      <td>Binary</td>
+    </tr>
+    <tr>
+      <td>Chronic obstructive pulmonary disease (dzgroup_copd)</td>
+      <td>967 (10.62%)</td>
+      <td>&mdash;</td>
+      <td>Binary</td>
+    </tr>
+
+    <!-- Severity & Acute Status -->
+    <tr class="section-row">
+      <td colspan="4">Severity &amp; Acute Status</td>
+    </tr>
+    <tr>
+      <td>Acute Physiology Score (aps)</td>
+      <td>37.60&nbsp;&plusmn;&nbsp;19.90</td>
+      <td>34.0 (23.0,&nbsp;49.0)</td>
+      <td>Continuous (skewed)</td>
+    </tr>
+    <tr>
+      <td>Mean blood pressure (meanbp, mmHg)</td>
+      <td>84.55&nbsp;&plusmn;&nbsp;27.69</td>
+      <td>77.0 (63.0,&nbsp;107.0)</td>
+      <td>Continuous (skewed)</td>
+    </tr>
+    <tr>
+      <td>PaO<sub>2</sub>/FiO<sub>2</sub> ratio (pafi)</td>
+      <td>263.39&nbsp;&plusmn;&nbsp;102.67</td>
+      <td>276.19 (180.00,&nbsp;333.30)</td>
+      <td>Continuous</td>
+    </tr>
+    <tr>
+      <td>Albumin (alb, g/dL)</td>
+      <td>3.15&nbsp;&plusmn;&nbsp;0.68</td>
+      <td>3.5 (2.7,&nbsp;3.5)</td>
+      <td>Continuous (low average)</td>
+    </tr>
+    <tr>
+      <td>Creatinine (crea, mg/dL)</td>
+      <td>1.77&nbsp;&plusmn;&nbsp;1.68</td>
+      <td>1.20 (0.90,&nbsp;1.90)</td>
+      <td>Continuous (highly skewed)</td>
+    </tr>
+
+    <!-- Outcomes & Resource Use -->
+    <tr class="section-row">
+      <td colspan="4">Outcomes &amp; Resource Use</td>
+    </tr>
+    <tr>
+      <td>Death (any)</td>
+      <td>6201 (68.10%)</td>
+      <td>&mdash;</td>
+      <td>Binary</td>
+    </tr>
+    <tr>
+      <td>Hospital death (hospdead)</td>
+      <td>2359 (25.91%)</td>
+      <td>&mdash;</td>
+      <td>Binary</td>
+    </tr>
+    <tr>
+      <td>Length of stay (slos, days)</td>
+      <td>17.86&nbsp;&plusmn;&nbsp;22.01</td>
+      <td>11.0 (6.0,&nbsp;20.0)</td>
+      <td>Count (highly skewed)</td>
+    </tr>
+    <tr>
+      <td>Total medical cost (totmcst, $)</td>
+      <td>28,839.15&nbsp;&plusmn;&nbsp;43,608.61</td>
+      <td>13,228.93 (5,179.89,&nbsp;34,263.85)</td>
+      <td>Cost (missing &asymp; 38%)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 class="section-heading">Phenotyping Strategy</h3>
+  <section class="intro-grid" aria-labelledby="intro">
+    <div>
+      <div class="section-lead">
+        <p>
+            Two complementary unsupervised pathways: one conditions on multimorbidity and 
+            looks for physiology-driven patterns; the other fuses comorbidity, physiology 
+            and context into a single set of ICU phenotypes.
+        </p>
+      </div>
+      <div class="intro-text">
+        <p><strong>MMSP: Physiology within Burden Strata</strong></p>
+        <p>
+            Patients are first split into Low, Mid and High multimorbidity strata using 
+            the comorbidity count. Within each stratum I cluster only on the z-scaled 
+            physiology view (vitals, labs, severity scores). PCA reduces this to a 
+            low-dimensional acute-state space, Euclidean distances are computed, and 
+            PAM (k-medoids) is used to derive clusters. Candidate K values are compared 
+            using bootstrap stability (Adjusted Rand Index) and internal indices, then 
+            reviewed for clinical interpretability. The result is a set of 
+            physiology-driven phenotypes defined separately within each level of 
+            multimorbidity.
+        </p>
+
+          <img
+            src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PortfolioMain/MMSP.svg"
+            alt="Cluster Sizes"
+            style="display:block; margin-left:auto; max-width:200%; height:auto;"
+          >       
+          <p>Figure 1: Multimorbidity-Stratified Phenotyping (MMSP) workflow.</p>
+
+        <div class="sidenote" id="sn3">
+            <span class="sidenote-number">Figure 1</span>
+            Multimorbidity-Stratified Phenotyping (MMSP) workflow.
+            Patients are first partitioned into low, mid and high multimorbidity strata by comorbidity count. Within each stratum, the day-3 physiology view (vitals, labs and severity scores) is reduced with PCA, Euclidean distances are computed, and PAM (k-medoids) clustering is applied to yield separate high-, mid- and low-burden ICU phenotypes.
+        </div>
+
+          <!-- <p class = "section-lead">
+            Multimorbidity-Stratified Phenotyping (MMSP) workflow.
+            Patients are first partitioned into low, mid and high multimorbidity strata by comorbidity count. Within each stratum, the day-3 physiology view (vitals, labs and severity scores) is reduced with PCA, Euclidean distances are computed, and PAM (k-medoids) clustering is applied to yield separate high-, mid- and low-burden ICU phenotypes.
+          </p><br> -->
+
+      </div>
+
+<section class="pca-strip">
+  <p><strong>Physiology Space</strong></p>
+  <p class="section-lead">
+    PCA of the acute physiology view (P-view) within each multimorbidity stratum.
+    Points are coloured by MMSP cluster; arrows indicate the main contributing
+    physiological variables.
+  </p>
+
+  <div class="pca-grid">
+    <!-- Low burden -->
+    <figure class="pca-card">
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/data/02_clusters/pca_biplot_2d_Low_MM.png"
+        alt="PCA biplot of MMSP clusters in the low multimorbidity stratum"
+        class="pca-card-image"
+      />
+      <figcaption class="section-lead">
+        <span class="pca-card-title">Low multimorbidity (N = 4,183)</span>
+      </figcaption>
+    </figure>
+
+    <!-- Mid burden -->
+    <figure class="pca-card">
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/data/02_clusters/pca_biplot_2d_Mid_MM.png"
+        alt="PCA biplot of MMSP clusters in the mid multimorbidity stratum"
+        class="pca-card-image"
+      />
+      <figcaption class="section-lead">
+        <span class="pca-card-title">Mid multimorbidity (N = 3,822)</span>
+      </figcaption>
+    </figure>
+
+    <!-- High burden -->
+    <figure class="pca-card">
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/data/02_clusters/pca_biplot_2d_High_MM.png"
+        alt="PCA biplot of MMSP clusters in the high multimorbidity stratum"
+        class="pca-card-image"
+      />
+      <figcaption class="section-lead">
+        <span class="pca-card-title">High multimorbidity (N = 1,100)</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="heatmap-strip">
+  <p><strong>MMSP cluster profiles</strong></p>
+  <p class="section-lead">
+    Heatmaps of MMSP clusters within each multimorbidity stratum. Colours show
+    cluster-level z-scores for selected comorbidities and key physiology
+    variables; warmer cells indicate relative enrichment within a cluster.
+  </p>
+
+  <div class="heatmap-grid">
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/heatmap_mmsp_Low_MM.png"
+        alt="MMSP cluster profiles in the low multimorbidity stratum"
+      />
+            <figcaption class="section-lead">
+        <span class="pca-card-title">Low multimorbidity (N = 4,183)</span>
+      </figcaption>
+    </figure>
+
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/heatmap_mmsp_Mid_MM.png"
+        alt="MMSP cluster profiles in the mid multimorbidity stratum"
+      />
+            <figcaption class="section-lead">
+        <span class="pca-card-title">Low multimorbidity (N = 4,183)</span>
+      </figcaption>
+    </figure>
+
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/heatmap_mmsp_High_MM.png"
+        alt="MMSP cluster profiles in the high multimorbidity stratum"
+      />
+            <figcaption class="section-lead">
+        <span class="pca-card-title">Low multimorbidity (N = 4,183)</span>
+      </figcaption>
+    </figure>
+  </div>
+
+  </section>
+
+<div class="sidenote" id="sn4">
+  <span class="sidenote-number">Figure 2</span>
+  MMSP cluster profiles by multimorbidity stratum. For each low, mid and high
+  multimorbidity group, the heatmaps display z-scored cluster averages of
+  selected comorbidities and age/APS, highlighting relative enrichment and
+  depletion across MMSP phenotypes.
+</div>
+
+            <div class="intro-text">
+        <p><strong>SNF-lite: Multi-View Fusion Phenotypes</strong></p>
+        <p>
+            In parallel, I build a multi-view similarity network using all three views: 
+            comorbidity (C), physiology (P) and socio-contextual features (S). For C and 
+            S I compute Gower similarities; for the scaled P view I use an RBF kernel. 
+            A lightweight Similarity Network Fusion routine iteratively combines these 
+            into a single fused affinity matrix that emphasises similarities supported 
+            by multiple views. Spectral clustering on this fused graph yields a global 
+            set of ICU phenotypes. K is chosen using the eigengap heuristic plus the 
+            same stability and internal metrics as MMSP, and competing solutions are 
+            compared on prognostic performance and clinical interpretability.
+        </p>
+
+        <img
+            src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PortfolioMain/SNF-Lite.svg"
+            alt="SNF-Lite"
+            style="display:block; margin-left:auto; max-width:200%; height:auto;"
+          >       
+          <p>Figure 2: Similarity Fusion Network-Lite (SNF-Lite) workflow.</p>
+
+        <div class="sidenote" id="sn4">
+            <span class="sidenote-number">Figure 2</span>
+            SNF-lite workflow: multimorbidity strata feed C, P and S views into a lightweight similarity network fusion step, which produces a fused affinity matrix and spectral-clustering–derived phenotypes across low, mid and high burden groups.
+        </div>
+      </div>
+    <div>
+ </section>
+
+<section class="network-strip">
+  <p><strong>SNF-lite patient similarity networks</strong></p>
+  <p class="section-lead">
+    k-nearest-neighbour graphs derived from the fused multi-view similarity
+    matrix within each multimorbidity stratum. Each node is a patient, edges
+    connect highly similar patients, and colours indicate SNF-lite cluster
+    membership.
+  </p>
+
+  <div class="network-grid">
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/snf_network_Low_MM.png"
+        alt="SNF-lite patient similarity network in the low multimorbidity stratum"
+      />
+      <div class="network-caption">
+        Low multimorbidity (N = 4,183)
+      </div>
+    </figure>
+
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/snf_network_Mid_MM.png"
+        alt="SNF-lite patient similarity network in the mid multimorbidity stratum"
+      />
+      <div class="network-caption">
+        Mid multimorbidity (N = 3,822)
+      </div>
+    </figure>
+
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/snf_network_High_MM.png"
+        alt="SNF-lite patient similarity network in the high multimorbidity stratum"
+      />
+      <div class="network-caption">
+        High multimorbidity (N = 1,100)
+      </div>
+    </figure>
+  </div>
+</section>
+
+<div class="sidenote" id="sn5">
+  <span class="sidenote-number">Figure 3</span>
+  SNF-lite patient similarity networks by multimorbidity stratum. Each panel
+  shows the k-nearest-neighbour graph constructed from the fused multi-view
+  similarity matrix; nodes are ICU admissions and edges represent strong
+  pairwise similarities. Node colours denote SNF-lite clusters, which form
+  visually distinct communities within the fused patient graph.
+</div>
+
+<section class="snf-strip">
+  <p><strong>SNF cluster profiles</strong></p>
+  <p class="section-lead">
+    Heatmaps of SNF clusters within each multimorbidity stratum. Colours show
+    cluster-level z-scores for selected comorbidities and key physiology
+    variables; warmer cells indicate relative enrichment within a cluster.
+  </p>
+
+  <div class="snf-grid">
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/heatmap_snf_Low_MM.png"
+        alt="SNF cluster profiles in the low multimorbidity stratum"
+      />
+            <figcaption class="section-lead">
+        <span class="pca-card-title">Low multimorbidity (N = 4,183)</span>
+      </figcaption>
+    </figure>
+
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/heatmap_snf_Mid_MM.png"
+        alt="SNF cluster profiles in the mid multimorbidity stratum"
+      />
+                  <figcaption class="section-lead">
+        <span class="pca-card-title">Mid multimorbidity (N = 3,822)</span>
+      </figcaption>
+    </figure>
+
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/heatmap_snf_High_MM.png"
+        alt="SNF cluster profiles in the high multimorbidity stratum"
+      />
+                  <figcaption class="section-lead">
+        <span class="pca-card-title">High multimorbidity (N = 1,100)</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<h3 class="section-heading">Internal Validation of MMSP and <br>SNF-lite Clusters</h3>
+  <section class="intro-grid" aria-labelledby="intro">
+    <div>
+      <div class="intro-text">
+        <p>
+            Internal clustering performance of the multimorbidity-stratified phenotyping (MMSP) solution and
+            the Similarity Network Fusion (SNF-lite) solution across high, mid and low multimorbidity strata.
+            For each stratum, MMSP metrics are reported at the rule-selected K from phase&nbsp;1, and SNF-lite
+            metrics are reported at the K chosen by the same stability-first selection rule (search range
+            K = 3–8). Higher stability (ARI), silhouette and Calinski–Harabasz indices, and lower
+            Davies–Bouldin indices, indicate better cluster separation. Across all strata, the SNF-lite
+            solution with K = 3 shows consistently superior internal validity compared with MMSP; combined
+            with prognostic and parsimony analyses, this motivated choosing SNF-lite as the primary
+            phenotyping system.
+        </p><br>
+      </div>
+    <div>
+ </section>
+
+<table class="phase-table variable-table" aria-label="MMSP vs SNF-lite internal validation table">
+  <thead>
+    <tr>
+      <th>Stratum</th>
+      <th>Method</th>
+      <th>Clusters (K)</th>
+      <th>Stability (ARI)</th>
+      <th>Silhouette</th>
+      <th>Calinski–Harabasz</th>
+      <th>Davies–Bouldin</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- High multimorbidity -->
+    <tr class="section-row">
+      <td colspan="7">High multimorbidity (4+ chronic conditions)</td>
+    </tr>
+    <tr>
+      <td>High MM</td>
+      <td>MMSP</td>
+      <td>5</td>
+      <td>0.221</td>
+      <td>0.115</td>
+      <td>91.16</td>
+      <td>2.48</td>
+    </tr>
+    <tr>
+      <td>High MM</td>
+      <td>SNF-lite</td>
+      <td>3</td>
+      <td>0.477</td>
+      <td>0.273</td>
+      <td>406.91</td>
+      <td>1.25</td>
+    </tr>
+
+    <!-- Mid multimorbidity -->
+    <tr class="section-row">
+      <td colspan="7">Mid multimorbidity (2–3 chronic conditions)</td>
+    </tr>
+    <tr>
+      <td>Mid MM</td>
+      <td>MMSP</td>
+      <td>3</td>
+      <td>0.321</td>
+      <td>0.110</td>
+      <td>367.23</td>
+      <td>2.80</td>
+    </tr>
+    <tr>
+      <td>Mid MM</td>
+      <td>SNF-lite</td>
+      <td>3</td>
+      <td>0.670</td>
+      <td>0.319</td>
+      <td>1566.30</td>
+      <td>1.13</td>
+    </tr>
+
+    <!-- Low multimorbidity -->
+    <tr class="section-row">
+      <td colspan="7">Low multimorbidity (0–1 chronic condition)</td>
+    </tr>
+    <tr>
+      <td>Low MM</td>
+      <td>MMSP</td>
+      <td>4</td>
+      <td>0.267</td>
+      <td>0.114</td>
+      <td>370.92</td>
+      <td>2.61</td>
+    </tr>
+    <tr>
+      <td>Low MM</td>
+      <td>SNF-lite</td>
+      <td>3</td>
+      <td>0.607</td>
+      <td>0.388</td>
+      <td>1961.89</td>
+      <td>1.05</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 class="section-heading">Cross-Validated Prognostic Value <br>of Phenotypes</h3>
+  <section class="intro-grid" aria-labelledby="intro">
+    <div>
+      <div class="intro-text">
+        <p>
+            Prognostic performance was evaluated using 5-fold cross-validated Harrell’s C-index for 6-month mortality within each multimorbidity stratum. The base model included age, sex, number of comorbidities (num.co) and APS, and was compared against versions augmented with MMSP or SNF-lite phenotypes. Across low (N = 4,183; 2,765 deaths), mid (N = 3,822; 2,648 deaths) and high multimorbidity (N = 1,100; 788 deaths), SNF-lite clusters consistently delivered larger gains in cross-validated C-index than MMSP clusters, with the strongest uplift in the low- and high-burden groups.<br>
+      </p>
+      </div>      
+            <br><img
+                src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PortfolioMain/deltaC.png"
+                alt="Cluster Sizes"
+                style="display:block; margin-left:auto; max-width:200%; height:auto;"
+            >       
+        <br><p>Figure 3: ΔC vs base (methods: MMSP, SNF-lite) </p><br>
+
+            <div class="sidenote" id="sn3">
+            <span class="sidenote-number">Figure 3</span>
+                Cross-validated gain in Harrell’s C-index over the base clinical model, comparing MMSP and SNF-lite phenotypes within each multimorbidity stratum.
+            </div>
+        <div class="intro-text">
+            <p>
+            <br>Five-fold cross-validated Harrell’s C-index for 6-month mortality by multimorbidity stratum.
+            The base model includes age, sex, number of comorbidities (num.co) and the Acute Physiology Score (APS).
+            MMSP and SNF-lite phenotypes are added as categorical predictors; we report mean C-index and mean
+            &Delta;C versus the base model across folds.
+            </p>
+      </div>
+    <div>
+ </section>
+
+</h3>
+<table class="phase-table variable-table" aria-label="Cross-validated prognostic comparison table">
+  <thead>
+    <tr>
+      <th>Stratum</th>
+      <th>Model</th>
+      <th>Mean C-index</th>
+      <th>Mean &Delta;C vs base</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- High multimorbidity -->
+    <tr class="section-row">
+      <td colspan="4">High multimorbidity (4+ chronic conditions, N = 1,100; 788 deaths)</td>
+    </tr>
+    <tr>
+      <td>High MM</td>
+      <td>Base clinical model</td>
+      <td>0.659</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td>High MM</td>
+      <td>Base + MMSP phenotypes</td>
+      <td>0.662</td>
+      <td>+0.003</td>
+    </tr>
+    <tr>
+      <td>High MM</td>
+      <td>Base + SNF-lite phenotypes</td>
+      <td>0.674</td>
+      <td>+0.015</td>
+    </tr>
+
+    <!-- Mid multimorbidity -->
+    <tr class="section-row">
+      <td colspan="4">Mid multimorbidity (2–3 chronic conditions, N = 3,822; 2,648 deaths)</td>
+    </tr>
+    <tr>
+      <td>Mid MM</td>
+      <td>Base clinical model</td>
+      <td>0.642</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td>Mid MM</td>
+      <td>Base + MMSP phenotypes</td>
+      <td>0.650</td>
+      <td>+0.007</td>
+    </tr>
+    <tr>
+      <td>Mid MM</td>
+      <td>Base + SNF-lite phenotypes</td>
+      <td>0.655</td>
+      <td>+0.012</td>
+    </tr>
+
+    <!-- Low multimorbidity -->
+    <tr class="section-row">
+      <td colspan="4">Low multimorbidity (0–1 chronic condition, N = 4,183; 2,765 deaths)</td>
+    </tr>
+    <tr>
+      <td>Low MM</td>
+      <td>Base clinical model</td>
+      <td>0.640</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td>Low MM</td>
+      <td>Base + MMSP phenotypes</td>
+      <td>0.646</td>
+      <td>+0.006</td>
+    </tr>
+    <tr>
+      <td>Low MM</td>
+      <td>Base + SNF-lite phenotypes</td>
+      <td>0.682</td>
+      <td>+0.042</td>
+    </tr>
+  </tbody>
+</table>
+<p class="section-lead">
+  Across all strata, SNF-lite phenotypes yielded larger cross-validated gains in discrimination than MMSP
+  phenotypes, supporting SNF-lite as the primary multi-view phenotyping system in MAIP.
+</p>
+
+<h3 class="section-heading">Parsimony &amp; Interpretability of <br>Phenotyping Systems</h3>
+  <section class="intro-grid" aria-labelledby="intro">
+    <div>
+      <div class="intro-text">
+        <p>
+            MMSP and SNF-lite differ not only in how they discover structure, but also in how compact and
+            interpretable the resulting phenotypes are. Below, I summarise the number and balance of clusters
+            and the complexity of the surrogate decision trees in each multimorbidity stratum.
+        </p><br>
+      </div>
+    <div>
+ </section>
+
+<table class="phase-table variable-table" aria-label="Parsimony and rule complexity table">
+  <thead>
+    <tr>
+      <th>Stratum</th>
+      <th>Method</th>
+      <th>Clusters (K)</th>
+      <th>Smallest cluster (% of stratum)</th>
+      <th>Largest cluster (% of stratum)</th>
+      <th>Number of rules</th>
+      <th>Median conditions per rule</th>
+      <th>Range of conditions (min–max)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- High multimorbidity -->
+    <tr class="section-row">
+      <td colspan="8">High multimorbidity (4+ chronic conditions, N = 1,100)</td>
+    </tr>
+    <tr>
+      <td>High MM</td>
+      <td>MMSP</td>
+      <td>5</td>
+      <td>1.6%</td>
+      <td>46.6%</td>
+      <td>14</td>
+      <td>4</td>
+      <td>3–4</td>
+    </tr>
+    <tr>
+      <td>High MM</td>
+      <td>SNF-lite</td>
+      <td>3</td>
+      <td>31.0%</td>
+      <td>37.5%</td>
+      <td>14</td>
+      <td>4</td>
+      <td>3–4</td>
+    </tr>
+
+    <!-- Mid multimorbidity -->
+    <tr class="section-row">
+      <td colspan="8">Mid multimorbidity (2–3 chronic conditions, N = 3,822)</td>
+    </tr>
+    <tr>
+      <td>Mid MM</td>
+      <td>MMSP</td>
+      <td>3</td>
+      <td>21.7%</td>
+      <td>49.8%</td>
+      <td>16</td>
+      <td>4</td>
+      <td>4–4</td>
+    </tr>
+    <tr>
+      <td>Mid MM</td>
+      <td>SNF-lite</td>
+      <td>3</td>
+      <td>26.2%</td>
+      <td>44.2%</td>
+      <td>13</td>
+      <td>4</td>
+      <td>2–4</td>
+    </tr>
+
+    <!-- Low multimorbidity -->
+    <tr class="section-row">
+      <td colspan="8">Low multimorbidity (0–1 chronic condition, N = 4,183)</td>
+    </tr>
+    <tr>
+      <td>Low MM</td>
+      <td>MMSP</td>
+      <td>4</td>
+      <td>8.0%</td>
+      <td>43.8%</td>
+      <td>15</td>
+      <td>4</td>
+      <td>3–4</td>
+    </tr>
+    <tr>
+      <td>Low MM</td>
+      <td>SNF-lite</td>
+      <td>3</td>
+      <td>11.4%</td>
+      <td>58.6%</td>
+      <td>11</td>
+      <td>4</td>
+      <td>2–4</td>
+    </tr>
+  </tbody>
+</table>
+
+<p class="section-lead">
+  Both systems admit shallow surrogate trees with a median of four conditions per rule, but SNF-lite
+  achieves this with fewer, generally better-balanced clusters, which simplifies explanation and
+  naming of phenotypes for clinicians.
+</p>
+
+  <img
+  src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PortfolioMain/Cluster Sizes.svg"
+  alt="Cluster Sizes"
+  style="display:block; margin-left:auto; max-width:100%; height:auto;"
+>
+
+<p class = "section-lead">
+    Cluster balance in SNF-lite versus MMSP phenotypes.
+    Each bubble represents the smallest and largest clusters in the most imbalanced stratum for each method. SNF-lite’s biggest imbalance occurs in the low multimorbidity stratum (11.4% vs 58.6%), 
+    whereas MMSP shows a much more extreme tail in the high multimorbidity stratum, with a tiny 1.6% cluster alongside a dominant 46.6% cluster.
+</p>
+
+<section class="snf-head">
+  <h3 class="section-heading">Concordance & Complementarity</h3>
+  
+  <div class="section-lead">
+    <p>
+      We next compared MMSP and SNF-lite labelings within each multimorbidity stratum. 
+      Cross-tabulations and pairwise Venn diagrams showed that no SNF-lite cluster 
+      mapped cleanly onto a single MMSP cluster or vice versa; most clusters shared 
+      only partial overlap.
+    </p>
+
+<p><strong>Concordance between MMSP and SNF-lite phenotypes</strong></p>
+<p class="section-lead">
+  Agreement between MMSP and SNF-lite labels was quantified within each
+  multimorbidity stratum using Adjusted Rand Index (ARI) and Normalised
+  Mutual Information (NMI). Values near 0 indicate little more than random
+  overlap; values near 1 indicate near-identical partitions.
+</p>
+
+<table class="phase-table concordance-table" aria-label="Concordance between MMSP and SNF-lite clusters">
+  <thead>
+    <tr>
+      <th>Stratum</th>
+      <th>Sample size (N)</th>
+      <th>MMSP clusters<br>(K<sub>MMSP</sub>)</th>
+      <th>SNF-lite clusters<br>(K<sub>SNF</sub>)</th>
+      <th>Adjusted Rand Index<br>(ARI)</th>
+      <th>Normalised Mutual<br>Information (NMI)</th>
+      <th>Concordance summary</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Low multimorbidity (0–1 chronic condition)</td>
+      <td>4,183</td>
+      <td>4</td>
+      <td>3</td>
+      <td>0.078</td>
+      <td>0.119</td>
+      <td>Low concordance; large SNF clusters mix several MMSP phenotypes.</td>
+    </tr>
+    <tr>
+      <td>Mid multimorbidity (2–3 chronic conditions)</td>
+      <td>3,822</td>
+      <td>3</td>
+      <td>3</td>
+      <td>0.141</td>
+      <td>0.152</td>
+      <td>Highest overlap, but still partial nesting and many-to-many mapping.</td>
+    </tr>
+    <tr>
+      <td>High multimorbidity (4+ chronic conditions)</td>
+      <td>1,100</td>
+      <td>5</td>
+      <td>3</td>
+      <td>0.098</td>
+      <td>0.129</td>
+      <td>Low concordance; each SNF cluster draws from multiple MMSP clusters.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="sidenote" id="sn-concordance">
+  <span class="sidenote-number">Figure / Table X</span>
+  Concordance between MMSP and SNF-lite phenotypes by multimorbidity stratum.
+  ARI and NMI values around 0.1 indicate that MMSP and SNF-lite capture related
+  but distinct structure; neither solution is a simple relabelling of the other.
+</div>
+
+
+    <p>
+      Concordance metrics were modest <strong>(ARI 0.08–0.14; NMI 0.12–0.15)</strong>, 
+      indicating that the two methods capture related but distinct structure in the 
+      patient space. Together with the cross-validated prognostic analysis—where 
+      both labelings improved discrimination over a clinical base model but SNF-lite 
+      yielded the largest ΔC—this suggests that MMSP and SNF-lite provide 
+      <strong>complementary phenotypic views</strong> rather than redundant partitions.
+    </p>
+    <p>
+      We therefore treat SNF-lite phenotypes as the primary clustering solution, 
+      with MMSP phenotypes providing a physiology-focused sensitivity and 
+      interpretability check within comorbidity strata.
+    </p>
+  </div>
+
+  <div class="snf-grid">
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/sankey_Low_MM.png"
+        alt="Sankey diagram showing patient flow between MMSP and SNF clusters in Low Multimorbidity"
+      />
+      <div class="snf-caption">
+        Low multimorbidity (ARI = 0.08)
+      </div>
+    </figure>
+
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/sankey_Mid_MM.png"
+        alt="Sankey diagram showing patient flow between MMSP and SNF clusters in Mid Multimorbidity"
+      />
+      <div class="snf-caption">
+        Mid multimorbidity (ARI = 0.14)
+      </div>
+    </figure>
+
+    <figure>
+      <img
+        src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/sankey_High_MM.png"
+        alt="Sankey diagram showing patient flow between MMSP and SNF clusters in High Multimorbidity"
+      />
+      <div class="snf-caption">
+        High multimorbidity (ARI = 0.10)
+      </div>
+    </figure>
+  </div>
+</section>
+
+<h3 class="section-heading">SNF-lite Phenotype Profiles Across Multimorbidity Strata</h3>
+<section class="intro-grid" aria-labelledby="snf-lite-profiles">
+  <div>
+    <div class="intro-text">
+      <p>
+        SNF-lite recovered three clinically coherent phenotypes within each multimorbidity
+        stratum. In the high-burden cohort, clusters separate patients with diabetic
+        multi-organ failure from chronic cardio–pulmonary and cardiometabolic cancer profiles.
+        Mid-multimorbidity phenotypes span older COPD-dominant chronic respiratory disease,
+        multi-organ failure with malignancy and cirrhosis, and compensated heart failure
+        with solid tumours. Even among low-multimorbidity patients, SNF-lite distinguishes
+        low-acuity solid tumour cases, neurologic catastrophe/coma, and acute multi-organ
+        failure in otherwise low-comorbidity patients. Together, these nine phenotypes map
+        onto familiar ICU patterns while making the spectrum of chronic burden and acute
+        severity explicit.
+      </p>
+      <br>
+    </div>
+  </div>
+</section>
+
+<table class="phase-table variable-table" aria-label="SNF-lite cluster profiles by multimorbidity stratum">
+  <thead>
+    <tr>
+      <th>Stratum</th>
+      <th>Cluster</th>
+      <th>Phenotype label</th>
+      <th>Dominant comorbidities / features</th>
+      <th>Acute physiology profile (relative within stratum)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- High multimorbidity -->
+    <tr class="section-row">
+      <td colspan="5">High multimorbidity (4+ chronic conditions)</td>
+    </tr>
+    <tr>
+      <td>High MM</td>
+      <td>H1</td>
+      <td>Diabetic multi-organ failure</td>
+      <td>
+        High burden of acute renal failure / multi-organ system failure, frequent diabetes and cancer,
+        substantial multimorbidity.
+      </td>
+      <td>
+        Most acutely unwell; highest acute physiology scores, impaired oxygenation,
+        pronounced biochemical derangement.
+      </td>
+    </tr>
+    <tr>
+      <td>High MM</td>
+      <td>H2</td>
+      <td>Cardio–pulmonary plus liver disease</td>
+      <td>
+        Enriched for heart failure, COPD and cirrhosis; moderate diabetes and cancer;
+        fewer explicit multi-organ failure codes.
+      </td>
+      <td>
+        Intermediate severity; acute physiology close to stratum average,
+        oxygenation and albumin relatively preserved.
+      </td>
+    </tr>
+    <tr>
+      <td>High MM</td>
+      <td>H3</td>
+      <td>Cardiometabolic plus solid tumours</td>
+      <td>
+        Very high prevalence of heart failure and diabetes with substantial solid tumour burden
+        (e.g. lung and other cancers).
+      </td>
+      <td>
+        Least acutely deranged in this stratum; relatively preserved oxygenation and renal function
+        despite heavy chronic disease.
+      </td>
+    </tr>
+
+    <!-- Mid multimorbidity -->
+    <tr class="section-row">
+      <td colspan="5">Mid multimorbidity (2–3 chronic conditions)</td>
+    </tr>
+    <tr>
+      <td>Mid MM</td>
+      <td>M1</td>
+      <td>Older COPD-dominant chronic respiratory</td>
+      <td>
+        Marked excess of COPD with coexisting but moderate heart failure, diabetes and cancer;
+        older age profile.
+      </td>
+      <td>
+        Mild-to-moderate acute derangement; modest impairment of oxygenation.
+      </td>
+    </tr>
+    <tr>
+      <td>Mid MM</td>
+      <td>M2</td>
+      <td>Multi-organ failure with malignancy and cirrhosis</td>
+      <td>
+        High rates of acute renal failure / multi-organ failure, malignancy (including metastatic),
+        cirrhosis and more frequent coma.
+      </td>
+      <td>
+        Most abnormal acute physiology in this stratum; low albumin and more deranged biochemical markers.
+      </td>
+    </tr>
+    <tr>
+      <td>Mid MM</td>
+      <td>M3</td>
+      <td>Compensated heart failure plus solid tumours</td>
+      <td>
+        High prevalence of heart failure and solid tumours (lung, colorectal),
+        relatively few explicit organ-failure codes.
+      </td>
+      <td>
+        Best-preserved acute physiology; near-normal oxygenation, renal indices and vital signs.
+      </td>
+    </tr>
+
+    <!-- Low multimorbidity -->
+    <tr class="section-row">
+      <td colspan="5">Low multimorbidity (0–1 chronic condition)</td>
+    </tr>
+    <tr>
+      <td>Low MM</td>
+      <td>L1</td>
+      <td>Low-acuity solid tumour</td>
+      <td>
+        Dominated by solid tumours, especially lung and colon cancer, with few additional
+        chronic conditions.
+      </td>
+      <td>
+        Lowest acute severity; good oxygenation and renal function, limited physiological derangement.
+      </td>
+    </tr>
+    <tr>
+      <td>Low MM</td>
+      <td>L2</td>
+      <td>Neurologic catastrophe / coma</td>
+      <td>
+        Very high frequency of coma diagnoses; relatively low chronic multimorbidity
+        and modest organ-failure burden.
+      </td>
+      <td>
+        Marked neurological compromise with only moderate systemic physiological derangement.
+      </td>
+    </tr>
+    <tr>
+      <td>Low MM</td>
+      <td>L3</td>
+      <td>Acute multi-organ failure with low baseline multimorbidity</td>
+      <td>
+        Very high prevalence of acute renal failure / multi-organ failure in patients
+        with few recorded chronic diseases.
+      </td>
+      <td>
+        Most acutely unwell in this stratum; impaired oxygenation and worse biochemical profiles
+        despite low multimorbidity.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+  <img
+  src='/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PortfolioMain/Project MAIP_ Scalable Approximate Similarity Fusion (SASF) clusters.svg'
+  alt="Overview schematic"
+  style="display:block; margin-left:auto; max-width:100%; height:auto;"
+>
+
+</main>
+</body>
+</html>
+
+
+  <!-- <p class="section-lead">
+    Selected work that illustrates the skills above. Each project is backed by
+    a complete analysis pipeline and manuscript-style documentation.
+  </p> -->
+
+  <!-- <section class="projects-grid" aria-label="Selected projects">
+    <article class="project-card">
+      <div class="project-code">01</div>
+      <div class="project-name">Study Design</div>
+      <div class="project-meta">R, Python, LCA, survival, reproducible pipeline</div>
+      <div class="project-description">
+        This is a retrospective cohort study using the SUPPORTII dataset, which contains detailed information on approximately 9,000 critically ill adult patients admitted to ICUs in multiple North American centres during the late 1980s and early 1990s. SUPPORT-II includes baseline demographics, comorbidities, physiological measurements near ICU admission, prognostic scores and follow-up outcomes such as vital status, survival time and length of stay. The target population for the phenotyping analyses comprises adult ICU admissions with sufficient data in the comorbidity and acute physiology domains to support cluster assignment. Outcome variables are reserved for validation analyses and are not used to build the phenotypes themselves.
+      </div>
+    </article>
+
+    <article class="project-card">
+      <div class="project-code">02</div>
+      <div class="project-name">Feature Space</div>
+      <div class="project-meta">Python, graph-based clustering, ICU dataset</div>
+      <div class="project-description">
+        The analysis distinguishes between a feature matrix (X), which is used for unsupervised learning and surrogate modelling, and an outcome matrix (Y), which is held out for external validation. The outcome matrix includes 2 vital status at one or more pre-specified horizons (for example in-hospital and 5-year mortality), time-to-event variables, and measures of ICU and hospital length of stay and resource utilisation. No outcome variable is included among the clustering features.
+      </div>
+    </article>
+
+    <article class="project-card">
+      <div class="project-code">03</div>
+      <div class="project-name">Views</div>
+      <div class="project-meta">Python, scikit-learn, RAG, LLMs</div>
+      <div class="project-description">
+        The feature matrix is organised into three conceptual “views”. The comorbidity view contains variables that describe chronic disease burden: the SUPPORT-II comorbidity count, indicator variables for specific chronic conditions, and broader diagnostic categories where available. The physiology view contains acute-state variables measured around ICU admission, including vital signs, arterial blood gas values, laboratory measurements, and composite severity indices. The socio-contextual view includes demographic characteristics such as age and sex, socio-economic proxies where available, and care-context variables such as advance directives. Continuous variables in the physiology view are transformed if necessary to mitigate extreme outliers and are standardised to have mean zero and unit variance. Categorical variables are encoded in a way that preserves interpretability (for example, one-hot encodings with clear level labels).
+      </div>
+    </article>
+
+    <article class="project-card">
+      <div class="project-code">04</div>
+      <div class="project-name">Imuptation</div>
+      <div class="project-meta">Cox PH, interactions, epidemiology</div>
+      <div class="project-description">
+        Missing data in (X) are handled using a consistent, pre-specified strategy. A pragmatic approach is to apply a single imputation model that is fitted without reference to the outcomes, optionally coupled with missingness indicators for variables with substantial gaps. The imputation recipe is documented in sufficient detail (including model type, predictors, and random seed) to support reproduction. The key design principle is that the imputation must not “peek” at outcomes and must preserve the link between the imputed features and the original clinical variables.
+      </div>
+    </article> -->
+
+    <!-- <article class="project-card">
+      <div class="project-code">M5</div>
+      <div class="project-name">Data Harmonisation &amp; Event-Long Tables</div>
+      <div class="project-meta">R, SQL, reproducible ETL</div>
+      <div class="project-description">
+        Designed and implemented a robust pipeline to derive high-quality
+        event-long datasets from raw ICU records. Included codebook-driven
+        variable naming, ICD mapping, handling of inconsistent timestamps, and
+        a suite of concordance and attrition diagnostics to ensure traceability.
+      </div>
+    </article>
+
+    <article class="project-card">
+      <div class="project-code">M6</div>
+      <div class="project-name">Teaching-Oriented Notebooks &amp; Reports</div>
+      <div class="project-meta">Quarto / Rmd, Tufte, literate programming</div>
+      <div class="project-description">
+        Produced notebook-style reports that combine narrative, maths and code;
+        suitable for supervisors, clinicians and technical reviewers. The MAIP
+        manuscript and portfolio you are reading were generated from these
+        documents, emphasising clarity, auditability and reuse.
+      </div>
+    </article>
+  </section> -->
+
+  <!-- Contact -->
+  <!-- <h2 class="section-heading">Contact</h2>
+  <p class="section-lead">
+    I am open to roles in health data science, applied machine learning and
+    research-adjacent engineering positions that value rigor and clear
+    communication.
+  </p> -->
+
+  <!-- <div class="contact-row">
+    <div>
+      <div class="contact-label">Email</div>
+      <div><a href="mailto:YOUR.EMAIL@here">YOUR.EMAIL@here</a></div>
+    </div>
+    <div>
+      <div class="contact-label">Github</div>
+      <div><a href="https://github.com/YOUR_HANDLE">github.com/YOUR_HANDLE</a></div>
+    </div>
+    <div>
+      <div class="contact-label">Location</div>
+      <div>Sydney, Australia</div>
+    </div>
+  </div> -->
