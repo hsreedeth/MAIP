@@ -1,0 +1,583 @@
+---
+title: "Multimorbidity-Anchored ICU Phenotypes (MAIP)"
+runningheader: "A Dual-Approach Unsupervised Learning
+Strategy with RAG-Assisted Translation of Surrogate Rules" # only for pdf output
+subtitle: "A Dual-Approach Unsupervised Learning
+Strategy with RAG-Assisted Translation of Surrogate Rules" # only for html output
+author: "Hari S. Sreedeth"
+date: "`r Sys.Date()`"
+output:
+  tufte::tufte_html: default
+  tufte::tufte_handout:
+    citation_package: natbib
+    latex_engine: xelatex
+  tufte::tufte_book:
+    citation_package: natbib
+    latex_engine: xelatex
+bibliography: skeleton.bib
+link-citations: yes
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+library(tufte)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(rstatix) # Great package for simplified statistical testing
+library(tidyr)
+
+# invalidate cache when the tufte version changes
+knitr::opts_chunk$set(cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+```
+
+# Introduction
+
+The clinical presentation of critically ill patients admitted to intensive care units
+is highly heterogeneous. This heterogeneity complicates diagnostic reasoning, prognostication,
+and treatment selection. Unsupervised machine learning has emerged as a useful
+tool for discovering data-driven patient sub-phenotypes in the ICU, but many existing approaches
+are dominated by the overwhelming signal of pre-existing chronic disease burden.
+As a result, derived clusters often recapitulate gradients in age and comorbidity count rather
+than revealing distinct, acute physiological patterns. This article describes the Multimorbidity-
+Anchored ICU Phenotypes (MAIP)^[See Github repositories [Project-MAIP](https://github.com/hsreedeth/ProjectMAIP)] project, which aims to develop and validate a phenotyping
+pipeline that explicitly disentangles the influence of multimorbidity from acute physiological
+derangement in the SUPPORT-II cohort^[The support dataset is a random sample of 1000 patients from Phases I & II of SUPPORT, [Study to Understand Prognoses Preferences Outcomes and Risks of Treatment](https://hbiostat.org/data/repo/supportdesc)]. The project employs two complementary unsupervised
+pathways: multimorbidity-stratified phenotyping (MMSP) and a simplified multiview
+similarity network fusion (SNF-lite) approach. A sparse decision-tree surrogate model
+is then trained to approximate the final cluster assignments. Its branch structure is exported
+into a structured JSON rule representation and translated into a clinician-facing rulecard
+and ASCII flowchart using a retrieval-augmented generation (RAG) pipeline running on a locally
+hosted small language model. The RAG architecture grounds the model in a curated
+knowledge base of variable definitions, phenotype summaries and style guidance, and is
+coupled with programmatic checks to ensure logical fidelity between the JSON rules and the
+textual rulecard. The anticipated outcome is a small set of stable, interpretable ICU phenotypes,
+together with an end-to-end reproducible workflow from raw data to a deployable,
+human-readable decision tool.
+
+The primary objective of the MAIP project is therefore twofold: 
+
+1. To derive stable, clinically interpretable ICU phenotypes that are not merely reflections of comorbidity gradients, and
+2. To demonstrate a robust, auditable pathway from unsupervised clustering to a clinician-facing
+rule representation, implemented via a RAG-assisted small-model translation pipeline.
+
+# Methods
+
+## Study design and data source
+
+This is a retrospective cohort study using the SUPPORTII
+dataset, which contains detailed information on approximately 9,000 critically ill adult patients
+admitted to ICUs in multiple North American centres during the late 1980s and early
+1990s. SUPPORT-II includes baseline demographics, comorbidities, physiological measurements
+near ICU admission, prognostic scores and follow-up outcomes such as vital status,
+survival time and length of stay. The target population for the phenotyping analyses comprises
+adult ICU admissions with sufficient data in the comorbidity and acute physiology domains
+to support cluster assignment. Outcome variables are reserved for validation analyses
+and are not used to build the phenotypes themselves.
+
+## Feature engineering and view construction 
+
+The analysis distinguishes between a feature
+matrix (X), which is used for unsupervised learning and surrogate modelling, and an
+outcome matrix (Y), which is held out for external validation. The outcome matrix includes
+2 vital status at one or more pre-specified horizons (for example in-hospital and 5-year mortality),
+time-to-event variables, and measures of ICU and hospital length of stay and resource
+utilisation. No outcome variable is included among the clustering features.
+
+The feature matrix is organised into three conceptual “views”. The comorbidity view contains
+variables that describe chronic disease burden: the SUPPORT-II comorbidity count, indicator
+variables for specific chronic conditions, and broader diagnostic categories where
+available. The physiology view contains acute-state variables measured around ICU admission,
+including vital signs, arterial blood gas values, laboratory measurements, and composite
+severity indices. The socio-contextual view includes demographic characteristics such as
+age and sex, socio-economic proxies where available, and care-context variables such as advance
+directives. Continuous variables in the physiology view are transformed if necessary
+to mitigate extreme outliers and are standardised to have mean zero and unit variance. Categorical
+variables are encoded in a way that preserves interpretability (for example, one-hot
+encodings with clear level labels).
+
+Missing data in (X) are handled using a consistent, pre-specified strategy. A pragmatic
+approach is to apply a single imputation model that is fitted without reference to the outcomes,
+optionally coupled with missingness indicators for variables with substantial gaps.
+The imputation recipe is documented in sufficient detail (including model type, predictors,
+and random seed) to support reproduction. The key design principle is that the imputation
+must not “peek” at outcomes and must preserve the link between the imputed features and
+the original clinical variables.
+
+## Phenotyping strategy: **multimorbidity-stratified (MMSP) and multi-view fusion (SNF-lite)**
+
+The phenotyping stage proceeds along two conceptual pathways, which are later compared
+and reconciled.
+
+In the multimorbidity-stratified pathway, patients are first divided into strata defined by
+chronic disease burden, as measured by the comorbidity count. For example, one stratum
+may contain patients with 0–1 chronic conditions, a second those with 2–3, and a third those
+with four or more, although the exact cut-points are decided a priori based on the distribution
+of comorbidity and clinical plausibility. Within each stratum, the clustering algorithm
+then focuses chiefly on acute physiology and selected contextual variables, effectively asking:
+among patients with broadly similar multimorbidity, what patterns in acute state and
+context differentiate subgroups?
+
+Because the data contain both continuous and categorical variables, dimensionality reduction
+within each stratum is performed using Factor Analysis of Mixed Data (FAMD). FAMD
+is a principal-component-type method designed for tables that contain both quantitative and
+qualitative variables and can be understood as an extension of principal component analysis
+(PCA) that incorporates multiple correspondence analysis (MCA) for categorical variables.
+(Wikipedia) A small number of FAMD components capturing a substantial proportion of the
+variance are retained. Distances between patients in this reduced space are then computed
+using a metric suitable for mixed data, such as Gower distance, which accounts for both numerical
+and categorical dimensions. Clustering is performed with a partitioning algorithm
+such as k-medoids, which is less sensitive to outliers than k-means and is naturally defined
+on arbitrary dissimilarity matrices.
+
+A range of candidate values for the number of clusters (K) is explored within each multimorbidity
+stratum. For each candidate (K), the stability of the clustering solution is evaluated
+using bootstrap resampling and the Adjusted Rand Index to quantify concordance between
+re-fitted partitions. Internal cluster quality indices such as the average silhouette width, the
+Calinski–Harabasz index and the Davies–Bouldin index are also calculated. The final choice
+of (K) balances statistical stability and separation with the requirement that the resulting
+clusters be clinically interpretable.
+
+The multi-view fusion pathway starts from the three views of the feature matrix described
+above. For each view, a similarity matrix between patients is constructed. For the comorbidity
+and socio-contextual views, Gower similarities are appropriate, as they can accommodate
+both binary and categorical variables. For the acute physiology view, where the variables are
+scaled and continuous, a radial basis function (RBF) kernel is used so that pairs of patients
+that are close in physiological space have high similarity, and those that are far apart have
+similarity close to zero. The result is three view-specific similarity matrices, each reflecting
+a different aspect of patient resemblance.
+
+These matrices are then combined using a simplified implementation of Similarity Network
+Fusion (SNF). SNF iteratively diffuses information across networks so that the fused
+network emphasises similarities that are supported by multiple data types. (PubMed) In
+practice, each similarity matrix is transformed into an affinity matrix, and a diffusion process
+is carried out in which each view’s affinity is updated using a weighted average of its
+own structure and the structures of the other views. After a fixed number of iterations, the
+fused affinity matrix represents a consensus notion of similarity that integrates comorbidities,
+physiology and context. Spectral clustering is then applied to the fused matrix: the
+graph Laplacian is constructed, its leading eigenvectors are used to embed patients into
+a low-dimensional space, and a clustering algorithm is run in that embedded space. The
+choice of (K) is informed by the eigengap heuristic together with the same stability and internal
+validity metrics used in the stratified pathway.
+
+The two pathways yield alternative sets of phenotypes. Their performance is compared
+both quantitatively, via stability and internal validity indices, and qualitatively, through clinical
+inspection of cluster profiles. The final phenotyping solution is selected from among
+these candidates, with a preference for solutions that are stable, parsimonious, and offer interpretable
+distinctions that are not reducible to simple gradients in age or multimorbidity.
+
+
+## External validation and phenotype characterisation
+
+Once a final clustering solution
+has been chosen, it is examined in relation to the held-out outcomes. Survival analyses compare
+phenotypes using Kaplan–Meier curves and log-rank tests, followed by Cox proportional
+hazards models in which cluster membership is entered as a categorical covariate, adjusted
+for key baseline confounders. Similar models or regression frameworks appropriate to the
+outcome distribution are used to compare ICU and hospital length of stay and cost across
+clusters. These analyses assess whether the phenotypes convey prognostic information that
+is not fully captured by standard severity scores or comorbidity counts. At the same time,
+descriptive profiles of each phenotype are assembled that summarise their comorbidity patterns,
+physiological characteristics and socio-demographic composition.
+
+## Surrogate decision-tree model and rule extraction
+
+To render the phenotyping solution
+in a form that is directly usable at the bedside or in downstream studies, a sparse surrogate
+model is trained to approximate the mapping from the feature matrix (X) to the final
+cluster labels. The surrogate is a decision tree fitted with constraints on depth and minimum
+node size to avoid over-fitting and to keep the tree compact and interpretable. The input features
+can be restricted to a subset of clinically intuitive variables (for example, a curated set
+of comorbidities and physiological measures) to simplify the resulting rules.
+
+The fitted tree is evaluated by comparing its predicted cluster labels against the original
+phenotyping assignments, using accuracy and macro-averaged F1 scores as measures
+of fidelity. A confusion matrix highlights any phenotypes that are intrinsically difficult to
+separate with a shallow tree. A target fidelity threshold is set a priori, recognising that the
+surrogate purposefully trades some fine-grained accuracy for interpretability.
+
+Once an acceptable tree is obtained, its structure is exported into a structured JSON representation.
+Each path from the root to a leaf corresponds to a decision rule that assigns patients
+to a specific phenotype based on a conjunction of conditions on individual variables.
+The JSON representation records, for each rule, the feature names, comparison operators,
+threshold values, and the resulting phenotype label. A schematic example is:
+
+```{yaml}
+{
+  "ruleset_id": "maip_v1",
+  "phenotypes": ["P1", "P2", "P3", "P4"],
+  "rules": [
+    {
+      "id": "R1",
+      "if": [
+        {"feature": "num_co", "op": "<", "value": 2},
+        {"feature": "aps", "op": ">", "value": 18}
+      ],
+      "then": {"phenotype": "P2"}
+    }
+  ]
+}
+
+```
+
+This structured representation becomes the canonical source of truth for the rule logic used in the subsequent LLM translation phase.
+
+## Retrieval-augmented LLM translation of rules
+
+The final stage translates the JSON-encoded surrogate tree rules into clinician-facing “rulecards” and ASCII flowcharts using a small, retrieval-augmented prompting pipeline. Conceptually, this stage treats the decision-tree rules as ground truth and uses a large language model (LLM) purely as a controlled re-writer that produces human-readable text without altering the underlying logic.
+
+The retrieval component is deliberately simple and fully local. A small corpus is maintained in the analysis repository: (i) a variable dictionary (`variable_dictionary.json`), (ii) per-phenotype markdown summaries (`phenotype_<label>.md`), and (iii) a markdown style guide (`style_guide.md`). The variable dictionary associates each model feature with a canonical code, a display name, measurement units, optional notes, and optional additional metadata (e.g. ordinal scales or value maps). The phenotype summaries are short, manually written descriptions of each multimorbidity phenotype, derived analytically from the clustering solution (e.g. dominant comorbidities, typical physiological profile, outcome gradients) rather than generated by the LLM. The style guide encodes high-level constraints on phrasing, such as requiring explicit units for numeric thresholds, favouring simple “if/then” constructions, and avoiding qualitative labels such as “severe” unless anchored in an explicit cut-point.
+
+For each surrogate stratum (High_MM, Mid_MM, Low_MM), the `rag_translate_rules.py` script reads the corresponding `rule_ruleset.json` file produced by the surrogate tree training step. Rules are grouped by their outcome label, and, for each label, the script: (i) collects all rules whose `outcome` equals that label; (ii) identifies the set of features used in those rules by inspecting the `path` conditions; and (iii) extracts only the relevant entries from the variable dictionary. If a markdown summary file `phenotype_<label>.md` is present, it is loaded; otherwise, an explicit placeholder text is inserted indicating that no summary is available. These ingredients (style guide, phenotype summary, and phenotype-specific subset of the variable dictionary) are then concatenated with the raw JSON rules into a single markdown user prompt. A short system prompt describes the LLM’s role as a deterministic translator and emphasises that every condition (feature, operator, threshold) from the JSON must appear in the textual output in an equivalent form, and that no new criteria or clinical recommendations may be introduced. The script writes one prompt JSON file per phenotype label (e.g. `prompt_High_MM_0.json`), containing the stratum, label, system prompt, user prompt, the original rules, and the list of variables used.
+
+Rulecards are generated by a separate script (`run_rulecards_remote_canonical.py`) that consumes these prompt files. For each phenotype, the script constructs a canonical system prompt that enforces a fixed output structure and calls a chat-completion model via API (default: `gpt-4.1-mini`, OpenAI). The model is run at near-zero temperature and with a fixed token budget to promote deterministic, reproducible outputs. The user message contains all retrieved context (style guide text, phenotype summary, variable snippets, and the JSON rules), and the system message specifies a strict format: the first line must be of the form `Phenotype {label} – <short clinical title>`, followed by three sections headed exactly `Key idea:`, `Rulecard:`, and `ASCII flowchart:`. The `Key idea` section provides a brief narrative description of the phenotype using only information from the supplied phenotype summary and variable dictionary. The `Rulecard` section lists each decision rule as a bullet-point “IF … THEN phenotype {label}” statement, preserving the surrogate tree logic. The `ASCII flowchart` section renders the same branching structure as a simple text tree for quick visual inspection. Illustrative schematic output is shown below; in practice, the headings and layout are enforced by the system prompt, and the content is constrained to the information passed in the user message:
+
+```{yaml}
+Phenotype P2 – "Hemodynamically unstable with limited chronic burden"
+
+Key idea:
+Patients with relatively few chronic conditions but marked acute physiologic derangement as reflected by elevated APS and impaired oxygenation.
+
+Rulecard:
+- IF comorbidity_count < 2 AND aps > 18 THEN classify as Phenotype P2.
+- IF comorbidity_count < 2 AND aps ≤ 18 AND pao2_fio2_ratio < 200 THEN classify as Phenotype P2.
+- …
+
+ASCII flowchart:
+[Start]
+  |
+  |-- Is comorbidity_count < 2? -- No --> [Other phenotypes]
+  | Yes
+  |
+  |-- Is aps > 18? -- Yes --> [P2]
+  | No
+  |
+  |-- Is pao2_fio2_ratio < 200? -- Yes --> [P2]
+                          No --> [Other phenotypes]
+```
+
+The LLM output is not accepted blindly. A dedicated validation script (`rulecard_validate.py`) applies three families of checks. First, a rule-coverage check parses each markdown rulecard, extracts lines that begin with “- IF”, and verifies that every JSON condition in the surrogate ruleset has a textual counterpart. For each condition, the script requires that the feature name appear as a whole word in at least one “IF” line and that one of several plausible string renderings of the numeric threshold (e.g. raw value and rounded formats) co-occurs in the same line. Any missing feature or threshold at this string-matching level is flagged in a per-phenotype summary table. Second, a variable-dictionary alignment check confirms that all features used in the surrogate rules are mentioned by their canonical name in the rulecard text and, where possible, appear in parentheses or code formatting (e.g. “… (aps)” or “`aps`”), indicating that the textual rulecard remains tied to the underlying feature definitions. Third, an optional synthetic-profile check (enabled when the fitted surrogate tree model is available) evaluates the internal consistency of the JSON rules with respect to the tree they were distilled from: for each path in the tree, a synthetic feature vector is generated that lies slightly inside all of the path’s inequalities, the surrogate model predicts a phenotype label for this vector, and the predicted label is compared to the intended outcome of the rule. These checks produce CSV reports summarising rule coverage, naming alignment, and (optionally) agreement between the JSON rules and the surrogate model.
+
+All artefacts in this stage—including the JSON rulesets, the assembled prompts, and the generated markdown rulecards—are stored as plain-text files under a fixed directory structure. Given a particular version of the code and the surrogate tree outputs, the rulecard generation process can therefore be rerun end-to-end, and any individual rulecard can be reconstructed from the saved prompts and ruleset if manual audit is required.
+
+# Cohort Characteristics
+
+This cohort is characterized by very high acuity and high multimorbidity, consistent with an ICU or critical care setting from the 1990s. The patients are predominantly older (median age $\approx 65$), and exhibit significant physiological compromise, including evidence of renal impairment (high creatinine), malnutrition/chronic disease (low albumin), and high rates of acute respiratory distress (low PaO2/FiO2 ratio). The most prevalent primary diagnoses are Multi-Organ System Failure (MOSF) (38.6%) and cancer (54.6%), leading to an exceptionally high overall mortality rate of 68%. Furthermore, resource use is highly skewed, with a long tail of patients driving costs and a significant portion (32.5%) having a DNR (Do Not Resuscitate) order instituted after admission. 
+
+```{r cohort-characterstics, echo=FALSE}
+
+eda <- read.csv("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/characteristics_cohort.csv")
+
+eda %>%
+  # Use the kable() function from knitr
+  kable(
+    format = "latex", # Tufte is often based on LaTeX
+    booktabs = TRUE,
+    caption = "Key Insights for Multimorbidity and Mortality Clustering",
+    align = 'lccc' # or 'llll' # Adjust column widths, especially for Inference
+  ) %>%
+  # Use kable_styling to finalize the appearance
+  kable_styling(
+    latex_options = c("striped", "scale_down"), # Use striped for visual separation
+    position = "center",
+    font_size = 10 # Adjust font size if the table is too wide
+  )
+
+knitr::kable(
+  eda, caption = 'Table x: Variable Summary'
+)
+```
+
+# Internal Validation of MMSP and SNF Clusters
+
+Comparison of internal clustering performance between the multimorbidity-stratified phenotyping (MMSP) solution and the Similarity Network Fusion (SNF-lite) solution across high, mid and low multimorbidity strata. For each stratum, MMSP metrics are reported at the rule-selected K from phase-1, and SNF-lite metrics are reported at the K chosen by the same stability-first selection rule (search range K = 3–8). Higher stability (ARI), silhouette and Calinski–Harabasz indices and lower Davies–Bouldin index indicate better cluster separation. Across all strata, the SNF-lite solution with K = 3 showed consistently superior internal validity compared with MMSP and was therefore adopted as the final clustering model.
+
+```{r echo=FALSE}
+comparison_table <- read.csv("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/model_comparisons.csv")
+knitr::kable(
+  comparison_table, caption = 'Table x: MMSP vs SNF-lite internal validation'
+)
+```
+
+# Results
+
+## High multimorbidity stratum
+
+In the high multimorbidity stratum, SNF-lite identified three large clusters that differed both in chronic disease burden and in acute physiological derangement. The first cluster was dominated by patients with acute renal failure or multi-organ system failure on a background of substantial multimorbidity. This group had the highest concentration of organ-failure diagnoses, frequent diabetes and malignancy, and the most abnormal acute physiology scores (higher APS/SPS/AVTISS) compared with the other high-multimorbidity clusters. Together, these features are consistent with a “diabetic multi-organ failure” profile representing the most acutely unwell segment of the high-burden cohort.
+
+The second high-multimorbidity cluster was characterised by a predominance of chronic cardio-pulmonary and hepatic disease. Congestive heart failure and COPD were much more common here than in the other clusters, and cirrhosis was also enriched, whereas multi-organ failure codes were less frequent. Acute physiology scores in this cluster were closer to or slightly better than the stratum average, and oxygenation and albumin levels were relatively preserved. Clinically, this group resembles a chronic “cardio-pulmonary plus liver disease” phenotype: patients with substantial chronic disease burden but without the same degree of acute decompensation seen in the organ-failure cluster.
+
+The third high-multimorbidity cluster was defined by very high prevalence of congestive heart failure and diabetes, together with a high burden of solid tumours, including lung cancer, but comparatively little recorded multi-organ failure. Patients in this cluster had the least severe acute physiology among the high-multimorbidity groups, with better oxygenation and less marked derangement in renal and biochemical markers. This pattern is most consistent with a “chronic cardiometabolic plus cancer” phenotype: individuals with extensive chronic illness, particularly heart failure and malignancy, but without the extreme acute instability of the multi-organ failure cluster.
+
+## Mid multimorbidity stratum
+
+Within the intermediate multimorbidity stratum, the three clusters also separated into recognisable clinical profiles. One cluster was dominated by chronic respiratory disease: COPD prevalence was markedly higher than in the rest of the cohort, with accompanying but more modest levels of heart failure, cancer and other comorbidities. Patients in this group were older on average, with only mildly abnormal acute physiology and modest impairment of oxygenation, suggesting an “older COPD-dominant chronic respiratory” phenotype rather than fulminant respiratory failure.
+
+A second cluster in the mid-multimorbidity stratum was defined by high rates of acute renal failure and multi-organ system failure, often in combination with malignancy and cirrhosis. Coma was also more common in this group. These patients tended to be somewhat younger than the COPD-dominant cluster but had substantially worse acute physiology scores, lower albumin and more deranged biochemical markers, indicating a “younger high-acuity multi-organ failure with malignancy and liver disease” phenotype.
+
+The third mid-multimorbidity cluster was characterised by high prevalence of heart failure and an exceptionally high burden of solid tumours, particularly lung and colorectal cancers, but relatively low rates of explicit multi-organ failure. Despite this heavy oncological and cardiac comorbidity, acute physiology scores, oxygenation and renal indices were the most favourable among the mid-multimorbidity clusters. This pattern is consistent with a “compensated heart failure plus solid tumour” phenotype: patients with substantial chronic disease, especially cancer, who remain comparatively stable at the time of admission.
+
+## Low multimorbidity stratum
+
+In the low multimorbidity stratum, where patients by definition had fewer recorded chronic conditions, SNF-lite still identified three clinically coherent clusters. One cluster comprised patients with a very high burden of solid tumours—particularly lung and colon cancer—but relatively low levels of other comorbidities. Acute physiology in this group was comparatively preserved, with good oxygenation, reasonable renal function and less extreme derangement of vital signs. This pattern represents a “low-acuity solid tumour” phenotype: oncology-dominant patients with limited additional multimorbidity.
+
+A second cluster in the low-multimorbidity stratum was strongly characterised by coma. Coma diagnoses were frequent, whereas other chronic comorbidities were less prominent, and organ-failure codes were only moderately elevated. Physiological markers suggested significant neurological compromise with only modest systemic derangement compared with the multi-organ failure clusters. This cluster can be viewed as a “neurologic catastrophe/coma” phenotype within an otherwise less multimorbid population.
+
+The third low-multimorbidity cluster was distinguished by very high prevalence of acute renal failure or multi-organ system failure, often in patients with relatively few chronic diagnoses. Acute physiology scores were clearly worse than in the other low-multimorbidity clusters, with more impaired oxygenation and less favourable biochemical profiles. This group represents an “acute multi-organ failure in otherwise low-comorbidity patients” phenotype, capturing individuals who are severely unwell at presentation despite limited baseline multimorbidity.
+
+Taken together, these nine clusters map onto intuitive clinical patterns spanning chronic cardio-pulmonary disease, malignancy-dominant states, neurological catastrophe and acute multi-organ failure, with each multimorbidity stratum showing its own spectrum of acute severity and disease composition.
+
+Cluster solutions from the SNF-lite models yielded three clinically distinct profiles within each multimorbidity stratum. Below we describe the composition and acute physiology of these clusters, using the cohort-level characteristics (high mortality, high prevalence of multi-organ failure and malignancy) as the reference context.
+
+`r margin_note("Table X. Qualitative clinical profiles of SNF-lite clusters within each multimorbidity stratum.")`
+
+
+| Stratum    | Cluster | Phenotype label                                      | Dominant comorbidities / features                                    | Acute physiology profile (relative within stratum)                          |
+|-----------|---------|------------------------------------------------------|------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| High MM   | H1      | Diabetic multi-organ failure                         | High burden of acute renal failure / multi-organ system failure, frequent diabetes and cancer, some dementia | Most acutely unwell; highest acute physiology scores, impaired oxygenation, biochemical derangement              |
+| High MM   | H2      | Cardio-pulmonary plus liver disease                  | Enriched for chronic heart failure, COPD and cirrhosis; moderate diabetes and cancer                          | Intermediate severity; acute physiology close to stratum average, oxygenation and albumin relatively preserved   |
+| High MM   | H3      | Cardiometabolic plus solid tumours                   | Very high prevalence of heart failure and diabetes with substantial solid tumour burden (e.g. lung, other)    | Least acutely deranged; relatively preserved oxygenation and renal function despite heavy chronic disease        |
+| Mid MM    | M1      | Older COPD-dominant chronic respiratory              | Marked excess of COPD with coexisting but moderate heart failure, diabetes and cancer                          | Older patients; mild-to-moderate acute derangement, modest impairment of oxygenation                            |
+| Mid MM    | M2      | Multi-organ failure with malignancy and cirrhosis    | High rates of acute renal failure / multi-organ failure, malignancy (including metastatic) and cirrhosis; more coma | Younger-to-midlife profile; most abnormal acute physiology, low albumin and more deranged biochemical markers    |
+| Mid MM    | M3      | Compensated heart failure plus solid tumours         | High prevalence of heart failure and solid tumours (lung, colorectal), relatively few explicit organ-failure codes | Best preserved acute physiology in this stratum; near-normal oxygenation, renal indices and vital signs         |
+| Low MM    | L1      | Low-acuity solid tumour                              | Dominated by solid tumours (especially lung and colon cancer) with few additional chronic conditions           | Lowest acute severity; good oxygenation and renal function, limited physiological derangement                    |
+| Low MM    | L2      | Neurologic catastrophe / coma                        | Very high frequency of coma diagnoses; relatively low chronic multimorbidity and modest organ-failure burden   | Marked neurological compromise with only moderate systemic physiological derangement                             |
+| Low MM    | L3      | Acute multi-organ failure with low baseline multimorbidity | Very high prevalence of acute renal failure / multi-organ failure in patients with few recorded chronic diseases | Most acutely unwell in this stratum; impaired oxygenation and worse biochemical profiles despite low multimorbidity |
+
+_Kruskal-Wallis Ranking (Best Discriminators First)_
+
+```{r Kruskal-Wallis Test, echo=FALSE, fig.cap = "Table x: Kruskal-Wallis Ranking (Best Discriminators First"}
+# List of continuous variables to test (add all physiological and demographic vars)
+continuous_vars <- c("age", "aps", "alb", "crea", "pafi", "meanbp", "wblc", "hrt", "temp")
+
+# 1. Perform Kruskal-Wallis Test (Non-parametric, robust to skewed data)
+raw_df <- read.csv("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/data/01_processed/support_preprocessed_clean.csv")
+kruskal_results <- raw_df %>%
+  select(Cluster_Label, all_of(continuous_vars)) %>%
+  pivot_longer(cols = -Cluster_Label, names_to = "Variable", values_to = "Value") %>%
+  group_by(Variable) %>%
+  kruskal_test(Value ~ Cluster_Label) %>%
+  adjust_pvalue(method = "bonferroni") %>% # Adjust p-values for multiple comparisons
+  arrange(p.adj) # Sort by adjusted p-value
+
+# 2. Extract Ranking
+# The variable with the smallest adjusted p-value (or largest H-statistic) is the strongest discriminator.
+knitr::kable(
+  kruskal_results
+)
+```
+
+
+_Physiological Profiles_
+
+```{r fig-profiles, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Figure 2: Physiological and Comorbidity Profiles. Standardized median values (Z-scores) for key discriminators across the three clusters within each multimorbidity stratum.", warning=FALSE, message=FALSE, echo=FALSE}
+library(ggplot2)
+library(ggthemes) # For Tufte theme if available, otherwise use theme_classic
+
+# 1. Reconstruct the summary data (Z-scores)
+# This data matches your 'cluster_profiles_P_medians.csv'
+plot_data <- tibble::tribble(
+  ~stratum, ~label, ~aps, ~alb, ~pafi, ~age, ~temp,
+  'High_MM', '0', 0.673, 0.331, -0.200, 0.191, -0.083,
+  'High_MM', '1', -0.181, 0.465, 0.044, 0.182, -0.563,
+  'High_MM', '2', -0.382, 0.465, 0.677, 0.411, -0.563,
+  'Low_MM', '0', -0.985, 0.465, 0.677, 0.013, -0.407,
+  'Low_MM', '1', -0.131, 0.465, 0.031, 0.224, 0.155,
+  'Low_MM', '2', 0.221, 0.196, -0.325, -0.049, 0.317,
+  'Mid_MM', '0', -0.281, 0.465, -0.228, 0.618, -0.407,
+  'Mid_MM', '1', 0.472, -0.207, -0.073, -0.061, -0.164,
+  'Mid_MM', '2', -0.633, 0.465, 0.677, 0.169, -0.482
+)
+
+# 2. Reshape to Long Format for ggplot
+plot_data_long <- plot_data %>%
+  pivot_longer(cols = c(aps, alb, pafi, age, temp), 
+               names_to = "Variable", 
+               values_to = "Z_Score") %>%
+  # Clean up variable names for the legend
+  mutate(Variable = factor(Variable, 
+                           levels = c("aps", "pafi", "alb", "age", "temp"),
+                           labels = c("APS (Severity)", "PaO2/FiO2", "Albumin", "Age", "Temp")))
+
+# 3. Create the Plot
+ggplot(plot_data_long, aes(x = label, y = Z_Score, group = Variable, color = Variable)) +
+  # Lines and Points
+  geom_line(size = 1, alpha = 0.8) +
+  geom_point(size = 3) +
+  
+  # Facet by Stratum (Side-by-side)
+  facet_wrap(~stratum, nrow = 1) +
+  
+  # Tufte / Publication Style Theme
+  theme_classic(base_size = 12) +
+  theme(
+    strip.background = element_blank(),       # Remove box around facet title
+    strip.text = element_text(size = 12, face = "bold"),
+    legend.position = "bottom",               # Legend at bottom
+    panel.grid.major.y = element_line(color = "grey90"), # Light grid for readability
+    axis.line.y = element_blank(),            # Minimal y-axis
+    axis.ticks.y = element_blank()
+  ) +
+  
+  # Labels and Scales
+  labs(x = "Cluster ID", y = "Standardized Value (Z-Score)") +
+  scale_color_brewer(palette = "Dark2")       # High contrast color palette
+
+```
+
+## **External validation and prognosis**
+
+## Survival differences across clusters
+
+Kaplan–Meier curves for all-cause mortality differed significantly between clusters within each multimorbidity stratum (overall log-rank p = 5.8×10⁻²⁷ in High_MM, 8.0×10⁻⁴⁶ in Mid_MM and 7.5×10⁻⁸² in Low_MM). This indicates that, even within bands of similar baseline multimorbidity burden, the derived phenotypes capture substantial variation in mortality risk.
+
+## Cox models adjusted for acute severity
+
+In Cox proportional hazards models fitted separately within each stratum and adjusted for the Acute Physiology Score (APS), both APS and cluster membership were strongly associated with mortality.
+
+**_High multimorbidity stratum (High_MM)_**
+A one-standard-deviation increase in APS was associated with a 55% higher hazard of death (HR 1.55, 95% CI 1.37–1.75; p ≈ 2×10⁻¹²). Compared with the reference cluster in this stratum, the two alternative High_MM phenotypes had substantially lower mortality: HR 0.68 (95% CI 0.55–0.84; p = 2.5×10⁻⁴) and HR 0.65 (95% CI 0.53–0.81; p = 9.0×10⁻⁵), corresponding to approximately 30–35% relative risk reductions after adjusting for APS. This suggests that, among patients with high multimorbidity, the reference phenotype represents the worst-prognosis group, whereas the other high-burden phenotypes are comparatively less lethal despite similar comorbidity counts.
+
+**_Mid multimorbidity stratum (Mid_MM)_**
+APS remained a strong predictor (HR 1.55 per standard deviation, 95% CI 1.46–1.64; p ≈ 1×10⁻⁴⁵). Cluster membership was also independently associated with mortality: two Mid_MM phenotypes showed elevated risk compared with the reference cluster, with HR 1.33 (95% CI 1.19–1.48; p ≈ 2×10⁻⁷) and HR 1.19 (95% CI 1.08–1.32; p = 8.0×10⁻⁴). Thus, even within an intermediate comorbidity band, phenotypes differ by roughly 20–30% in adjusted mortality risk.
+
+**_Low multimorbidity stratum (Low_MM)_**
+In patients with lower multimorbidity burden, APS was again strongly associated with mortality (HR 1.72 per standard deviation, 95% CI 1.63–1.81; p < 1×10⁻⁹³). Cluster membership added substantial prognostic information: one Low_MM phenotype had almost double the hazard of death relative to the reference cluster (HR 1.72, 95% CI 1.48–2.01; p ≈ 2×10⁻¹²), whereas another had approximately half the hazard (HR 0.46, 95% CI 0.41–0.51; p ≈ 8×10⁻⁵¹). This indicates that, among patients with relatively few chronic conditions, the SNF-lite phenotypes separate a high-risk acute organ-failure phenotype from a low-risk, low-acuity group.
+
+```{r KM_curves, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Figure : Kaplan-Meier curves by multimorbidity stratum.", warning=FALSE, message=FALSE, echo=FALSE}
+library(magick)
+
+
+# paths to your existing KM PNGs
+km_paths <- c(
+  "reports/figures/km_High_MM.png",
+  "reports/figures/km_Mid_MM.png",
+  "reports/figures/km_Low_MM.png"
+)
+
+# read and append horizontally
+imgs      <- image_read(km_paths)
+km_all    <- image_append(imgs, stack = FALSE)  # FALSE = side-by-side
+
+# (optional) write to disk if you want to reuse it
+image_write(km_all, path = "reports/figures/km_all_strata.png")
+
+# include in the document
+include_graphics("reports/figures/km_all_strata.png")
+```
+
+`r margin_note("Table X. Cox proportional hazards models for all-cause mortality within each multimorbidity stratum. Models are adjusted for APS (per SD); cluster effects are relative to the reference cluster in that stratum.")`
+
+| Stratum  | Predictor                            | HR (95% CI)              | p-value        |
+|---------|--------------------------------------|--------------------------|----------------|
+| High MM | APS (per SD)                         | 1.55 (1.37–1.75)         | 2.1 × 10^-12   |
+| High MM | Cluster High_MM_1 vs reference       | 0.68 (0.55–0.84)         | 2.5 × 10^-4    |
+| High MM | Cluster High_MM_2 vs reference       | 0.65 (0.53–0.81)         | 9.0 × 10^-5    |
+| Mid MM  | APS (per SD)                         | 1.55 (1.46–1.64)         | 9.9 × 10^-46   |
+| Mid MM  | Cluster Mid_MM_1 vs reference        | 1.33 (1.19–1.48)         | 2.3 × 10^-7    |
+| Mid MM  | Cluster Mid_MM_2 vs reference        | 1.19 (1.08–1.32)         | 8.0 × 10^-4    |
+| Low MM  | APS (per SD)                         | 1.72 (1.63–1.81)         | 6.9 × 10^-94   |
+| Low MM  | Cluster Low_MM_1 vs reference        | 1.72 (1.48–2.01)         | 2.2 × 10^-12   |
+| Low MM  | Cluster Low_MM_2 vs reference        | 0.46 (0.41–0.51)         | 7.8 × 10^-51   |
+
+
+### **Length of stay and cost**
+
+Length of stay and hospital cost also differed markedly between clusters. Kruskal–Wallis tests within each stratum showed highly significant heterogeneity in ICU/hospital length of stay (slos) and total hospital cost (totmcst):
+
+`r margin_note("Table X. Kruskal–Wallis tests for length of stay and total hospital cost across clusters, by multimorbidity stratum.")`
+
+| Stratum  | p-value for LOS (`slos`) | p-value for total cost (`totmcst`) |
+|----------|--------------------------|------------------------------------|
+| High MM  | 1.34 × 10^-17            | 1.30 × 10^-50                      |
+| Mid MM   | 8.02 × 10^-76            | 1.03 × 10^-146                     |
+| Low MM   | 2.22 × 10^-157           | 1.49 × 10^-157                     |
+
+
+Although effect-size estimates (medians and interquartile ranges) are reported separately, these p-values confirm that the phenotypes map onto distinct patterns of healthcare utilisation: clusters with more acute physiological derangement and multi-organ failure tend to have longer stays and higher costs, while the low-acuity phenotypes have substantially shorter stays and lower expenditure.
+
+**Taken together, these results show that the clustered phenotypes are not merely proxies for APS or comorbidity count: cluster membership remains strongly associated with mortality after adjusting for acute physiology within each comorbidity stratum.** 
+
+## **Surrogate trees and LLM-derived rulecards** 
+
+## Surrogate decision trees for explainable phenotypes
+
+For each stratum of multimorbidity (High_MM, Mid_MM, Low_MM), we trained a separate decision tree classifier to approximate the SNF-derived phenotypes. The input features were the same harmonised baseline variables used in the clustering stage, and the outcome was the stratum-specific phenotype label (e.g. High_MM_0–2). Trees were grown with depth and leaf-size constraints to avoid overfitting (maximum depth and minimum samples per leaf tuned by grid search with cross-validation), and class weights were balanced to account for modest differences in phenotype prevalence. Hyperparameter selection was based on macro-averaged F1 and overall accuracy, averaged across repeated cross-validation; the chosen settings and per-stratum performance are reported in Supplementary Table Sx. The final fitted trees were then used as “surrogate” models from which we extracted all decision paths terminating in each phenotype. Each unique leaf path corresponds to one JSON-encoded rule of the form “feature–operator–threshold” together with its observed support and purity.
+
+## Retrieval-augmented corpus for rule translation
+
+To translate these machine-readable rules into clinician-facing descriptions, we built a small, frozen knowledge base and used it within a retrieval-augmented generation (RAG) pattern. The corpus comprised three components: (i) a variable dictionary (`variable_dictionary.json`) containing, for each feature, a short display name, a plain-language description, units, a typical range and (where applicable) the expected direction of risk; (ii) one phenotype summary per label (`Phenotype <stratum_label>.md`), providing a concise, data-driven description of its comorbidity composition, acute physiology profile and survival tendencies; and (iii) a style guide (`style_guide.md`) specifying how narratives, rulecards and ASCII flowcharts should be phrased. The corpus was treated as immutable (“frozen”) before LLM generation to ensure reproducibility.
+
+For each phenotype, a translation script assembled a compact prompt by combining four elements: (i) the JSON rule paths for that phenotype, (ii) the corresponding phenotype summary, (iii) the subset of variable-dictionary entries for the features appearing in those rules, and (iv) an excerpt of the style guide. In conceptual terms, this corresponds to a small vector index over markdown/JSON documents where the phenotype label and feature names define the query; in practice, we explicitly selected the relevant snippets based on the rule paths, so that only phenotype-specific material was injected into the context.
+
+## LLM configuration and deterministic instructions
+
+Rule translation was performed with a remote, general-purpose chat model (GPT-4.1-mini, 8k context, accessed via API). The model was instructed via a fixed system prompt to behave as a deterministic translator rather than a diagnostic agent. Specifically, it was told to: (i) preserve every logical element of the JSON rules (feature, operator, numeric threshold) in an equivalent IF/THEN form; (ii) avoid introducing any new variables, cut-points or phenotypes; (iii) refrain from treatment or management advice; and (iv) always emit exactly three sections, with fixed headings:
+
+```yaml
+* `Phenotype <label> – <short title>`
+* `Key idea:` – one or two sentences summarising the typical patient
+* `Rulecard:` – a bullet list of explicit IF/THEN rules
+* `ASCII flowchart:` – a simple text flowchart mirroring the same branches.
+```
+
+The prompts also explicitly forbade regurgitating the JSON or the style-guide text itself. Generation used a low temperature (0–0.1) and a sufficiently high token budget to avoid truncation, so that outputs were essentially deterministic given the fixed inputs.
+
+For each of the nine phenotypes (three per stratum), the pipeline produced a canonical markdown rulecard (`rulecard_<label>.md`) containing a short narrative (“Key idea”), a human-readable rulecard and an ASCII flowchart skeleton representing the same decision paths. The entire process was wrapped in a single command-line entry point (`python -m src.cli build-rulecards …`), which (i) regenerates the surrogate ruleset if needed, (ii) rebuilds the prompts from the frozen corpus, (iii) calls the remote LLM, and (iv) runs the validation checks described below.
+
+## Programmatic quality control of rulecards
+
+We implemented a dedicated validation script to check fidelity between the JSON rules, the variable dictionary and the LLM-generated texts. First, for each stratum we loaded the canonical `rule_ruleset.json` and the corresponding rulecards. All decision paths associated with a given phenotype were counted (JSON rule count), and the rulecard text was parsed line-by-line to identify bullet points beginning with “- IF”. For each JSON condition, we required that (i) the canonical feature name appeared in at least one “- IF” line, and (ii) a string representation of the threshold (with several numeric formats) appeared in the same line. Any missing feature–threshold pairing flagged that phenotype as having incomplete coverage. We summarised these checks in per-stratum CSV files recording, for each phenotype, the number of JSON rules, number of textual IF rules and flags for missing features or mismatched thresholds.
+
+Second, we assessed dictionary alignment. For every feature used in the surrogate rules, we confirmed that an entry existed in the variable dictionary and that the canonical feature name appeared somewhere in the corresponding rulecard. We also recorded whether the name appeared in parentheses or code formatting (e.g. “acute physiology score (aps)”), as a proxy for readability. These checks were again summarised in per-stratum CSV tables.
+
+Finally, we optionally verified that the synthetic logic of the JSON rules was consistent with the fitted surrogate tree. For each leaf path, we constructed a synthetic feature vector that lay inside the corresponding decision region (by choosing values slightly within each inequality) and passed it through the trained tree. The predicted label was compared with the phenotype label attached to that path; mismatches were recorded for manual inspection. This step provides a sanity check that the exported rule paths correctly reflect the behaviour of the surrogate classifier.
+
+## **Surrogate fidelity and rulecard generation**
+
+## Surrogate tree performance
+
+`r margin_note("Table X. Cross-validated fidelity of decision tree surrogates to SNF phenotypes, by multimorbidity stratum.")`
+
+| Stratum  | CV accuracy (mean ± SD) | Macro–F1 (mean ± SD) |
+|----------|-------------------------|-----------------------|
+| High MM  | 0.741 ± 0.027           | 0.744 ± 0.026         |
+| Mid MM   | 0.821 ± 0.004           | 0.797 ± 0.007         |
+| Low MM   | 0.900 ± 0.007           | 0.877 ± 0.013         |
+
+
+The surrogate trees provided a compact, reasonably faithful approximation to the SNF-derived phenotypes. Cross-validated performance was strongest in the low-multimorbidity stratum and lowest in the high-multimorbidity stratum, consistent with the greater clinical heterogeneity of the latter. Macro-averaged F1 and overall accuracy by stratum are reported in Table X. Briefly, all three surrogates achieved moderate-to-high macro-F1, indicating that no single phenotype dominated the fit, and inspection of the trees confirmed that they were small enough to be interpretable while capturing the main decision structure of the underlying clusters.
+
+```{r ConfMatrices, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Figure : Confusion Matrices from surrogate models used in SNF clusters", warning=FALSE, message=FALSE, echo=FALSE}
+
+cf_paths <- c(
+  "reports/surrogate_high/figures/confusion_matrix.png",
+  "reports/surrogate_mid/figures/confusion_matrix.png",
+  "reports/surrogate_low/figures/confusion_matrix.png"
+)
+
+# read and append horizontally
+imgs      <- image_read(cf_paths)
+km_all    <- image_append(imgs, stack = FALSE)  # FALSE = side-by-side
+
+# (optional) write to disk if you want to reuse it
+image_write(km_all, path = "reports/figures/cf_all_strata.png")
+
+# include in the document
+include_graphics("reports/figures/cf_all_strata.png")
+```
+
+
+Across strata, the fitted trees yielded between one and seven terminal rules per phenotype (median ≈4), each corresponding to a distinct combination of comorbidity groups and acute physiology cut-points. Cancer-dominated phenotypes in the low-multimorbidity stratum were typically represented by a single, simple rule, whereas multi-organ failure phenotypes in the high- and mid-multimorbidity strata required several leaf paths to cover different ranges of physiology and support intensity.
+
+## Fidelity of LLM-generated rulecards
+
+The RAG-based translation pipeline successfully produced narrative descriptions, rulecards and ASCII flowcharts for all nine phenotypes. Programmatic checks confirmed that every JSON rule was represented in the corresponding textual rulecard: for each phenotype, the number of “- IF” rules in the markdown was at least as large as the number of leaf paths in the surrogate tree, and all feature–threshold pairs extracted from the JSON were detected in the same lines of the rulecard. No missing features or mismatched thresholds were identified in the final canonical rulecards after minor manual edits to enforce one IF condition per line.
+
+Dictionary alignment was also complete: every feature appearing in any surrogate rule had a corresponding entry in the variable dictionary and was mentioned by its canonical name in the rulecard text. Many features were additionally referenced in parentheses after a plain-language description (for example, “Acute Physiology Score (aps)” or “Do-Not-Resuscitate status: no DNR order (dnr_no_dnr)”), which helps bridge model-centric and clinician-centric terminology.
+
+In the optional synthetic-profile verification, we generated 38 synthetic patient profiles spanning all decision paths (14 in the high-, 13 in the mid- and 11 in the low-multimorbidity strata). For every profile, the surrogate tree’s prediction matched the phenotype label attached to the corresponding rule path, yielding 100% agreement across strata. This suggests that the exported JSON rules faithfully captured the behaviour of the fitted surrogate models, and that the LLM-translated rulecards, which were constrained to mirror those JSON rules, provide a logically faithful narrative representation of the phenotypes.
+
+Complete rulecards and ASCII flowcharts for all nine phenotypes are provided in the Supplementary Material, together with the surrogate-tree hyperparameters, cross-validation metrics and programmatic QC summaries.
+
+
