@@ -7,16 +7,17 @@ Validate LLM-generated rulecards against surrogate tree rules.
 Implements:
   1) Rule coverage / consistency checks (4.1)
   2) Variable-dictionary alignment checks (4.2)
-  3) Optional synthetic profile verification (4.3)
+  3) opt. synthetic profile verification (4.3)
 
 Example usage (per stratum):
 
-  python -m src.rulecard_validate \
-    --stratum High_MM \
-    --rules-json reports/surrogate_high/tables/rule_ruleset.json \
-    --rulecards-dir reports/rulecards_final/high \
-    --var-dict rag_corpus/variable_dictionary.json \
-    --out-dir reports/rulecards_final/high
+# HIGH_MM
+python -m src.rulecard_validate \
+--stratum High_MM \
+--rules-json reports/surrogate_high/tables/rule_ruleset.json \
+--rulecards-dir reports/rulecards_final/high \
+--var-dict rag_corpus/variable_dictionary.json \
+--out-dir reports/rulecards_final/high
 
 # MID_MM
 python -m src.rulecard_validate \
@@ -36,14 +37,14 @@ python -m src.rulecard_validate \
 --out-dir reports/rulecards_final/low \
 --model-bundle reports/surrogate_low/models/surrogate_tree.joblib
 
-  # with optional synthetic checks:
-  python -m src.rulecard_validate \
-    --stratum High_MM \
-    --rules-json reports/surrogate_high/tables/rule_ruleset.json \
-    --rulecards-dir reports/rulecards_final/high \
-    --var-dict rag_corpus/variable_dictionary.json \
-    --model-bundle reports/surrogate_high/models/surrogate_tree.joblib \
-    --out-dir reports/rulecards_final/high
+# with synthetic checks:
+python -m src.rulecard_validate \
+--stratum High_MM \
+--rules-json reports/surrogate_high/tables/rule_ruleset.json \
+--rulecards-dir reports/rulecards_final/high \
+--var-dict rag_corpus/variable_dictionary.json \
+--model-bundle reports/surrogate_high/models/surrogate_tree.joblib \
+--out-dir reports/rulecards_final/high
 """
 
 import argparse
@@ -59,15 +60,12 @@ try:
 except ImportError:
     joblib_load = None
 
-
-# ---------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------
 
 def load_ruleset(rules_json: Path):
     payload = json.loads(rules_json.read_text(encoding="utf-8"))
     rules = payload["rules"]
-    # collect labels and per-label rules
+    # collect labels and per label rules
     labels = sorted({r["outcome"] for r in rules})
     rules_by_label = {lab: [] for lab in labels}
     for r in rules:
@@ -95,10 +93,10 @@ def threshold_strings(val: float):
     strs.add(f"{val:.4f}")
     strs.add(f"{val:.3f}")
     strs.add(f"{val:.2f}")
-    # if it's basically an int, include that too
+    # if its basically an int, include that too
     if abs(val - round(val)) < 1e-6:
         strs.add(str(int(round(val))))
-    # also drop trailing zeros / trailing dots versions
+    # also drop trailing 0s / trailing dots versions
     clean = {s.rstrip("0").rstrip(".") for s in strs}
     return clean
 
@@ -140,7 +138,7 @@ def feature_name_alignment(feature: str, text: str):
 def make_synthetic_point(path_conditions, feature_names):
     """
     Build a synthetic feature vector that satisfies all inequalities
-    in a JSON rule path. This is deliberately simple: it picks a
+    in a JSON rule path. This is actually trivial lul: it picks a
     value slightly inside each inequality and leaves others at 0.
     """
     x = {f: 0.0 for f in feature_names}
@@ -149,7 +147,7 @@ def make_synthetic_point(path_conditions, feature_names):
         f   = cond["feature"]
         op  = cond["op"]
         thr = float(cond["threshold"])
-        # choose a small delta relative to magnitude
+        # choose a small delta rel to magnitude .
         delta = 0.1 * (abs(thr) if abs(thr) > 1e-3 else 1.0)
 
         if op == "<=":
@@ -167,9 +165,7 @@ def make_synthetic_point(path_conditions, feature_names):
     return x
 
 
-# ---------------------------------------------------------------------
 # Main validation logic
-# ---------------------------------------------------------------------
 
 def validate_rulecards(stratum, rules_json, rulecards_dir, var_dict_path,
                        out_dir, model_bundle=None):
@@ -177,11 +173,11 @@ def validate_rulecards(stratum, rules_json, rulecards_dir, var_dict_path,
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # ---- Load core artefacts ----
+    # load core instruments .
     payload, labels, rules_by_label = load_ruleset(Path(rules_json))
     var_dict = json.loads(Path(var_dict_path).read_text(encoding="utf-8"))
 
-    # optional model for synthetic checks
+    # opt. model for synthetic checks
     clf = None
     le  = None
     feature_names_model = None
@@ -192,13 +188,13 @@ def validate_rulecards(stratum, rules_json, rulecards_dir, var_dict_path,
         meta   = bundle.get("meta", {})
         feature_names_model = meta.get("feature_names", None)
 
-    # ---------------- 4.1 Rule coverage / consistency ----------------
+    # 4.1 Rule coverage/ consistency 
     coverage_rows = []
 
-    # ---------------- 4.2 Dictionary alignment -----------------------
+    # 4.2 Dictionary alignment
     dict_rows = []
 
-    # ---------------- 4.3 Synthetic profiles (optional) --------------
+    # 4.3 Synthetic profiles (def keeping) 
     synth_rows = []
 
     for label in labels:
@@ -244,8 +240,8 @@ def validate_rulecards(stratum, rules_json, rulecards_dir, var_dict_path,
             "missing_rulecard_file": False,
         })
 
-        # ----- Dictionary / parenthetical alignment per feature (4.2) -----
-        # Features used in this phenotype’s rules:
+        # dictionary / parenthetical alignment per feature (4.2)
+        # features used in this phenotype’s rules:
         feat_set = set()
         for r in rules_by_label[label]:
             for cond in r["path"]:
@@ -264,7 +260,7 @@ def validate_rulecards(stratum, rules_json, rulecards_dir, var_dict_path,
                 "has_parenthetical_or_code": bool(parenthetical),
             })
 
-        # ----- Optional synthetic-profile verification (4.3) -----
+        # synthetic profile verification (ref 4.3) 
         if clf is not None and le is not None and feature_names_model is not None:
             for i, rule in enumerate(rules_by_label[label]):
                 x_dict = make_synthetic_point(rule["path"], feature_names_model)
@@ -283,7 +279,7 @@ def validate_rulecards(stratum, rules_json, rulecards_dir, var_dict_path,
                     "match": str(pred_label) == label,
                 })
 
-    # ---- Write outputs ----
+    # Write outputs.
     cov_df = pd.DataFrame(coverage_rows)
     cov_path = out_dir / f"rulecard_validation_{stratum.lower()}.csv"
     cov_df.to_csv(cov_path, index=False)
@@ -301,9 +297,8 @@ def validate_rulecards(stratum, rules_json, rulecards_dir, var_dict_path,
         print(f"[VALIDATE] Synthetic profile checks → {synth_path}")
 
 
-# ---------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------
+
+# CLI - - -
 
 def main():
     ap = argparse.ArgumentParser(
