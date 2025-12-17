@@ -19,7 +19,7 @@ def load_all():
     P = pd.read_csv(PROC / "P_view_scaled.csv")
     S = pd.read_csv(PROC / "S_view.csv")
     Y = pd.read_csv(PROC / "Y_validation.csv")
-    L = pd.read_csv(CLUS / "mmsp_clusters.csv")
+    L = pd.read_csv(CLUS / "mmsp_snf_clusters.csv")
     # enforce eid join
     for df in (C,P,S,Y,L):
         assert "eid" in df.columns, "eid missing"
