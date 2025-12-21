@@ -477,3 +477,42 @@ plot_stratum_forest(cox_df, "Mid_MM")
 # Plot 3: Low Multimorbidity Stratum
 plot_stratum_forest(cox_df, "Low_MM")
 ```
+
+```{r KM_curves, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Figure: Adjusted Cox proportional hazards models (365-day mortality) ", warning=FALSE, message=FALSE, echo=FALSE}
+
+library(svglite)
+
+
+# Define where you want to save them
+fig_dir <- "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PrimaryOutcomesCodebook"
+
+# Helper function to save and plot simultaneously
+save_forest_svg <- function(data, stratum, filename) {
+  
+  # 1. Open the SVG device
+  # width and height are in inches by default
+  svglite::svglite(file = file.path(fig_dir, filename), width = 10, height = 6)
+  
+  # 2. Run your existing plotting function
+  # The plot will be drawn onto the open "canvas" (the SVG file)
+  plot_stratum_forest(data, stratum)
+  
+  # 3. Close the device (save the file)
+  dev.off()
+  
+  # 4. Optional: Print it again so it still shows up in your HTML report
+  plot_stratum_forest(data, stratum)
+}
+
+# --- Execute for each stratum ---
+
+# 1. High Stratum
+save_forest_svg(cox_df, "High_MM", "forest_High_MM.svg")
+
+# 2. Mid Stratum
+save_forest_svg(cox_df, "Mid_MM",  "forest_Mid_MM.svg")
+
+# 3. Low Stratum
+save_forest_svg(cox_df, "Low_MM",  "forest_Low_MM.svg")
+
+```

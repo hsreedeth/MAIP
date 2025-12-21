@@ -1920,9 +1920,213 @@ I worked with the SUPPORT-II ICU cohort (~9,000 critically ill adults from multi
   style="display:block; margin-left:auto; max-width:100%; height:auto;"
 >
 
+<h3 class="section-heading">Primary outcome associations (365-day mortality)</h3>
+
+<section class="intro-grid" aria-labelledby="cox-primary">
+  <div>
+    <div class="intro-text">
+      <p>
+        Within each multimorbidity stratum, I estimated adjusted associations between SNF-lite phenotype
+        membership and 365-day all-cause mortality using Cox proportional hazards models, with cluster as the
+        exposure and adjustment for age (standardised), sex, multimorbidity count (standardised), and acute
+        physiology severity (APS, standardised). Cluster membership remained independently prognostic after
+        adjustment.
+      </p>
+      <p>
+        Proportional hazards diagnostics based on Schoenfeld residuals indicated departures from strict PH
+        assumptions even after truncation to 365 days; hazard ratios are therefore interpreted as average
+        effects over the 1-year horizon.
+      </p>
+      <br>
+    </div>
+  </div>
+</section>
+
+<h4 style="margin-top: 40px; margin-bottom: 20px;">High Multimorbidity Stratum</h4>
+
+<table class="phase-table variable-table" aria-label="High Stratum: Adjusted Cox Model">
+  <thead>
+    <tr>
+      <th>Term</th>
+      <th>Adjusted HR (95% CI)</th>
+      <th>p-value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="section-row">
+      <td colspan="3">Reference phenotype = High_MM_0</td>
+    </tr>
+    <tr>
+      <td>High_MM_1 vs High_MM_0</td>
+      <td>0.57 (0.39–0.82)</td>
+      <td>0.003</td>
+    </tr>
+    <tr>
+      <td>High_MM_2 vs High_MM_0</td>
+      <td>0.51 (0.37–0.70)</td>
+      <td>2.0e-05</td>
+    </tr>
+    <tr>
+      <td>Age (per 1 SD)</td>
+      <td>0.96 (0.82–1.11)</td>
+      <td>0.576</td>
+    </tr>
+    <tr>
+      <td>Male (vs female)</td>
+      <td>1.24 (1.03–1.50)</td>
+      <td>0.025</td>
+    </tr>
+    <tr>
+      <td>Multimorbidity count (per 1 SD)</td>
+      <td>1.02 (0.88–1.18)</td>
+      <td>0.798</td>
+    </tr>
+    <tr>
+      <td>Acute physiology (APS, per 1 SD)</td>
+      <td>1.43 (1.20–1.70)</td>
+      <td>4.0e-05</td>
+    </tr>
+  </tbody>
+</table>
+
+<figure style="margin: 30px 0;">
+  <img
+    src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PrimaryOutcomesCodebook/TechnicalDocumentation_files/figure-html/KM_curves-1.png"
+    alt="Forest plot for High Multimorbidity Stratum"
+    style="display:block; margin-left:auto; margin-right:auto; max-width:100%; height:auto;"
+  >
+  <figcaption style="text-align:center; font-style:italic; font-size:0.9em; color:#555;">
+    Fig A. Adjusted hazard ratios for High Multimorbidity stratum.
+  </figcaption>
+</figure>
+
+<hr style="border: 0; border-top: 1px solid #eee; margin: 40px 0;">
+
+<h4>Mid Multimorbidity Stratum</h4>
+
+<table class="phase-table variable-table" aria-label="Mid Stratum: Adjusted Cox Model">
+  <thead>
+    <tr>
+      <th>Term</th>
+      <th>Adjusted HR (95% CI)</th>
+      <th>p-value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="section-row">
+      <td colspan="3">Reference phenotype = Mid_MM_0</td>
+    </tr>
+    <tr>
+      <td>Mid_MM_1 vs Mid_MM_0</td>
+      <td>1.87 (1.56–2.23)</td>
+      <td>2.1e-11</td>
+    </tr>
+    <tr>
+      <td>Mid_MM_2 vs Mid_MM_0</td>
+      <td>1.30 (1.11–1.53)</td>
+      <td>0.002</td>
+    </tr>
+    <tr>
+      <td>Age (per 1 SD)</td>
+      <td>1.28 (1.17–1.40)</td>
+      <td>1.1e-07</td>
+    </tr>
+    <tr>
+      <td>Male (vs female)</td>
+      <td>1.06 (0.96–1.17)</td>
+      <td>0.239</td>
+    </tr>
+    <tr>
+      <td>Multimorbidity count (per 1 SD)</td>
+      <td>0.92 (0.83–1.01)</td>
+      <td>0.101</td>
+    </tr>
+    <tr>
+      <td>Acute physiology (APS, per 1 SD)</td>
+      <td>1.63 (1.49–1.78)</td>
+      <td>2.6e-26</td>
+    </tr>
+  </tbody>
+</table>
+
+<figure style="margin: 30px 0;">
+  <img
+    src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PrimaryOutcomesCodebook/TechnicalDocumentation_files/figure-html/KM_curves-2.png"
+    alt="Forest plot for Mid Multimorbidity Stratum"
+    style="display:block; margin-left:auto; margin-right:auto; max-width:100%; height:auto;"
+  >
+  <figcaption style="text-align:center; font-style:italic; font-size:0.9em; color:#555;">
+    Fig B. Adjusted hazard ratios for Mid Multimorbidity stratum.
+  </figcaption>
+</figure>
+
+<hr style="border: 0; border-top: 1px solid #eee; margin: 40px 0;">
+
+<h4>Low Multimorbidity Stratum</h4>
+
+<table class="phase-table variable-table" aria-label="Low Stratum: Adjusted Cox Model">
+  <thead>
+    <tr>
+      <th>Term</th>
+      <th>Adjusted HR (95% CI)</th>
+      <th>p-value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="section-row">
+      <td colspan="3">Reference phenotype = Low_MM_0</td>
+    </tr>
+    <tr>
+      <td>Low_MM_1 vs Low_MM_0</td>
+      <td>2.36 (1.93–2.89)</td>
+      <td>1.2e-15</td>
+    </tr>
+    <tr>
+      <td>Low_MM_2 vs Low_MM_0</td>
+      <td>0.59 (0.49–0.73)</td>
+      <td>1.5e-04</td>
+    </tr>
+    <tr>
+      <td>Age (per 1 SD)</td>
+      <td>1.22 (1.11–1.34)</td>
+      <td>5.3e-05</td>
+    </tr>
+    <tr>
+      <td>Male (vs female)</td>
+      <td>1.06 (0.93–1.21)</td>
+      <td>0.427</td>
+    </tr>
+    <tr>
+      <td>Multimorbidity count (per 1 SD)</td>
+      <td>1.66 (1.47–1.87)</td>
+      <td>9.9e-17</td>
+    </tr>
+    <tr>
+      <td>Acute physiology (APS, per 1 SD)</td>
+      <td>1.48 (1.33–1.65)</td>
+      <td>2.2e-11</td>
+    </tr>
+  </tbody>
+</table>
+
+<figure style="margin: 30px 0;">
+  <img
+    src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PrimaryOutcomesCodebook/TechnicalDocumentation_files/figure-html/KM_curves-3.png"
+    alt="Forest plot for Low Multimorbidity Stratum"
+    style="display:block; margin-left:auto; margin-right:auto; max-width:100%; height:auto;"
+  >
+  <figcaption style="text-align:center; font-style:italic; font-size:0.9em; color:#555;">
+    Fig C. Adjusted hazard ratios for Low Multimorbidity stratum.
+  </figcaption>
+</figure>
+
 </main>
 </body>
 </html>
+
+
+
+
 
 
   <!-- <p class="section-lead">

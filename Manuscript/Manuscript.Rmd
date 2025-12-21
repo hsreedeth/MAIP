@@ -425,46 +425,9 @@ ggplot(plot_data_long, aes(x = label, y = Z_Score, group = Variable, color = Var
 
 ```
 
-## **External validation and prognosis**
 
-## Survival differences across clusters
+## **Outcome associations**
 
-Kaplan–Meier curves for all-cause mortality differed significantly between clusters within each multimorbidity stratum (overall log-rank p = 5.8×10⁻²⁷ in High_MM, 8.0×10⁻⁴⁶ in Mid_MM and 7.5×10⁻⁸² in Low_MM). This indicates that, even within bands of similar baseline multimorbidity burden, the derived phenotypes capture substantial variation in mortality risk.
-
-## Cox models adjusted for acute severity
-
-In Cox proportional hazards models fitted separately within each stratum and adjusted for the Acute Physiology Score (APS), both APS and cluster membership were strongly associated with mortality.
-
-**_High multimorbidity stratum (High_MM)_**
-A one-standard-deviation increase in APS was associated with a 55% higher hazard of death (HR 1.55, 95% CI 1.37–1.75; p ≈ 2×10⁻¹²). Compared with the reference cluster in this stratum, the two alternative High_MM phenotypes had substantially lower mortality: HR 0.68 (95% CI 0.55–0.84; p = 2.5×10⁻⁴) and HR 0.65 (95% CI 0.53–0.81; p = 9.0×10⁻⁵), corresponding to approximately 30–35% relative risk reductions after adjusting for APS. This suggests that, among patients with high multimorbidity, the reference phenotype represents the worst-prognosis group, whereas the other high-burden phenotypes are comparatively less lethal despite similar comorbidity counts.
-
-**_Mid multimorbidity stratum (Mid_MM)_**
-APS remained a strong predictor (HR 1.55 per standard deviation, 95% CI 1.46–1.64; p ≈ 1×10⁻⁴⁵). Cluster membership was also independently associated with mortality: two Mid_MM phenotypes showed elevated risk compared with the reference cluster, with HR 1.33 (95% CI 1.19–1.48; p ≈ 2×10⁻⁷) and HR 1.19 (95% CI 1.08–1.32; p = 8.0×10⁻⁴). Thus, even within an intermediate comorbidity band, phenotypes differ by roughly 20–30% in adjusted mortality risk.
-
-**_Low multimorbidity stratum (Low_MM)_**
-In patients with lower multimorbidity burden, APS was again strongly associated with mortality (HR 1.72 per standard deviation, 95% CI 1.63–1.81; p < 1×10⁻⁹³). Cluster membership added substantial prognostic information: one Low_MM phenotype had almost double the hazard of death relative to the reference cluster (HR 1.72, 95% CI 1.48–2.01; p ≈ 2×10⁻¹²), whereas another had approximately half the hazard (HR 0.46, 95% CI 0.41–0.51; p ≈ 8×10⁻⁵¹). This indicates that, among patients with relatively few chronic conditions, the SNF-lite phenotypes separate a high-risk acute organ-failure phenotype from a low-risk, low-acuity group.
-
-```{r KM_curves, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Figure : Kaplan-Meier curves by multimorbidity stratum.", warning=FALSE, message=FALSE, echo=FALSE}
-library(magick)
-
-
-# paths to your existing KM PNGs
-km_paths <- c(
-  "reports/figures/km_High_MM.png",
-  "reports/figures/km_Mid_MM.png",
-  "reports/figures/km_Low_MM.png"
-)
-
-# read and append horizontally
-imgs      <- image_read(km_paths)
-km_all    <- image_append(imgs, stack = FALSE)  # FALSE = side-by-side
-
-# (optional) write to disk if you want to reuse it
-image_write(km_all, path = "reports/figures/km_all_strata.png")
-
-# include in the document
-include_graphics("reports/figures/km_all_strata.png")
-```
 
 `r margin_note("Table X. Cox proportional hazards models for all-cause mortality within each multimorbidity stratum. Models are adjusted for APS (per SD); cluster effects are relative to the reference cluster in that stratum.")`
 
@@ -479,24 +442,6 @@ include_graphics("reports/figures/km_all_strata.png")
 | Low MM  | APS (per SD)                         | 1.72 (1.63–1.81)         | 6.9 × 10^-94   |
 | Low MM  | Cluster Low_MM_1 vs reference        | 1.72 (1.48–2.01)         | 2.2 × 10^-12   |
 | Low MM  | Cluster Low_MM_2 vs reference        | 0.46 (0.41–0.51)         | 7.8 × 10^-51   |
-
-
-### **Length of stay and cost**
-
-Length of stay and hospital cost also differed markedly between clusters. Kruskal–Wallis tests within each stratum showed highly significant heterogeneity in ICU/hospital length of stay (slos) and total hospital cost (totmcst):
-
-`r margin_note("Table X. Kruskal–Wallis tests for length of stay and total hospital cost across clusters, by multimorbidity stratum.")`
-
-| Stratum  | p-value for LOS (`slos`) | p-value for total cost (`totmcst`) |
-|----------|--------------------------|------------------------------------|
-| High MM  | 1.34 × 10^-17            | 1.30 × 10^-50                      |
-| Mid MM   | 8.02 × 10^-76            | 1.03 × 10^-146                     |
-| Low MM   | 2.22 × 10^-157           | 1.49 × 10^-157                     |
-
-
-Although effect-size estimates (medians and interquartile ranges) are reported separately, these p-values confirm that the phenotypes map onto distinct patterns of healthcare utilisation: clusters with more acute physiological derangement and multi-organ failure tend to have longer stays and higher costs, while the low-acuity phenotypes have substantially shorter stays and lower expenditure.
-
-**Taken together, these results show that the clustered phenotypes are not merely proxies for APS or comorbidity count: cluster membership remains strongly associated with mortality after adjusting for acute physiology within each comorbidity stratum.** 
 
 ## **Surrogate trees and LLM-derived rulecards** 
 
@@ -550,10 +495,12 @@ The surrogate trees provided a compact, reasonably faithful approximation to the
 
 ```{r ConfMatrices, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Figure : Confusion Matrices from surrogate models used in SNF clusters", warning=FALSE, message=FALSE, echo=FALSE}
 
+library(magick)
+
 cf_paths <- c(
-  "reports/surrogate_high/figures/confusion_matrix.png",
-  "reports/surrogate_mid/figures/confusion_matrix.png",
-  "reports/surrogate_low/figures/confusion_matrix.png"
+  "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/surrogate_high/figures/confusion_matrix.png",
+  "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/surrogate_mid/figures/confusion_matrix.png",
+  "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/surrogate_low/figures/confusion_matrix.png"
 )
 
 # read and append horizontally
@@ -561,10 +508,10 @@ imgs      <- image_read(cf_paths)
 km_all    <- image_append(imgs, stack = FALSE)  # FALSE = side-by-side
 
 # (optional) write to disk if you want to reuse it
-image_write(km_all, path = "reports/figures/cf_all_strata.png")
+image_write(km_all, path = "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/cf_all_strata.png")
 
 # include in the document
-include_graphics("reports/figures/cf_all_strata.png")
+include_graphics("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/cf_all_strata.png")
 ```
 
 
@@ -580,4 +527,43 @@ In the optional synthetic-profile verification, we generated 38 synthetic patien
 
 Complete rulecards and ASCII flowcharts for all nine phenotypes are provided in the Supplementary Material, together with the surrogate-tree hyperparameters, cross-validation metrics and programmatic QC summaries.
 
+# **Supplementary analyses**
 
+Across all three multimorbidity strata, the SNF-lite phenotypes show clear separation in 365-day survival, indicating that the clusters capture clinically meaningful risk heterogeneity *within* baseline multimorbidity burden. In the High_MM stratum, High_MM_0 exhibits markedly worse early survival than the other two clusters, while High_MM_2 shows the most favourable survival trajectory over the first year (High_MM_1 is intermediate). In the Mid_MM stratum, Mid_MM_1 separates as the highest-risk cluster with steep early mortality, whereas Mid_MM_0 and Mid_MM_2 remain substantially higher and closer together. In the Low_MM stratum, Low_MM_1 is clearly the highest-risk cluster, while Low_MM_0 and Low_MM_2 show materially better 365-day survival with only modest late divergence.
+
+```{r KM_curves, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Figure: 365-day Kaplan–Meier curves by SNF-lite phenotype (stratified by multimorbidity burden)", warning=FALSE, message=FALSE, echo=FALSE}
+library(magick)
+
+
+# paths to your existing KM PNGs
+km_paths <- c(
+  "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/outcomes_supporting_365d/figures/km_High_MM.png",
+  "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/outcomes_supporting_365d/figures/km_Mid_MM.png",
+  "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/outcomes_supporting_365d/figures/km_Low_MM.png"
+)
+
+# read and append horizontally
+imgs      <- image_read(km_paths)
+km_all    <- image_append(imgs, stack = FALSE)  # FALSE = side-by-side
+
+# (optional) write to disk if you want to reuse it
+image_write(km_all, path = "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/outcomes_supporting_365d/figures/km_all_strata.png")
+
+# include in the document
+include_graphics("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/outcomes_supporting_365d/figures/km_all_strata.png")
+```
+
+Consistent with the survival separation, length of stay (LOS) and total cost also differ significantly by cluster within each stratum (Kruskal–Wallis). These differences support the interpretation that the phenotypes are not only clinically coherent (composition/physiology) but also prognostically and resource-relevant. These KM/LOS/cost results are the supporting descriptive layer; the primary inference should be reported using the adjusted, stratum-specific Cox models in R (age/sex/multimorbidity count/severity adjustment), with the KM plots presented as an intuitive visual confirmation of risk ordering.
+
+### Table: Global differences in outcomes by stratum (supporting analyses)
+`r margin_note("Table: Global differences in outcomes by stratum (supporting analyses)")`
+
+| Stratum |    N | Overall log-rank p (365d) | LOS Kruskal–Wallis p | Cost Kruskal–Wallis p |
+| ------- | ---: | ------------------------: | -------------------: | --------------------: |
+| High_MM | 1100 |                   1.5e-35 |              1.3e-17 |               1.3e-50 |
+| Mid_MM  | 3822 |                   8.9e-71 |              8.0e-76 |              1.0e-146 |
+| Low_MM  | 4183 |                   2.8e-95 |             2.2e-157 |              1.5e-157 |
+
+Although effect-size estimates (medians and interquartile ranges) are reported separately, these p-values confirm that the phenotypes map onto distinct patterns of healthcare utilisation: clusters with more acute physiological derangement and multi-organ failure tend to have longer stays and higher costs, while the low-acuity phenotypes have substantially shorter stays and lower expenditure.
+
+**Taken together, these results show that the clustered phenotypes are not merely proxies for APS or comorbidity count: cluster membership remains strongly associated with mortality after adjusting for acute physiology within each comorbidity stratum.** 
