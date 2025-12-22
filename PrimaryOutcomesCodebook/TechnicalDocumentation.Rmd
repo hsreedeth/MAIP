@@ -390,22 +390,86 @@ clean_term_label <- function(term) {
 }
 
 # 3. Define the plotting function
+# plot_stratum_forest <- function(data, stratum_name) {
+#   
+#   # Filter for the specific stratum and prepare the data
+#   plot_df <- data %>%
+#     filter(stratum == stratum_name) %>%
+#     mutate(
+#       # Clean up the term names for the plot label
+#       display_name = clean_term_label(term),
+#       
+#       # Since the input CSV already has exponentiated HRs, we use them directly
+#       hr  = estimate,
+#       lci = conf.low,
+#       uci = conf.high
+#     ) %>%
+#     # Optional: Arrange specific order if needed (e.g., Clusters first)
+#     # This relies on the original order being Clusters -> Covariates
+#     mutate(
+#       label = paste0(
+#         display_name, 
+#         "  HR ", sprintf("%.2f", hr),
+#         " (", sprintf("%.2f", lci), "–", sprintf("%.2f", uci), ")"
+#       )
+#     )
+#   
+#   # Stop if no data found
+#   if(nrow(plot_df) == 0) {
+#     warning(paste("No data found for stratum:", stratum_name))
+#     return(NULL)
+#   }
+#   
+#   # Create the matrix for text labels (Header + Data)
+#   labeltext <- rbind(
+#     c(paste0("Variable (", stratum_name, ")")),
+#     as.matrix(plot_df$label)
+#   )
+#   
+#   # Create the data vectors (Header gets NA)
+#   mean  <- c(NA, plot_df$hr)
+#   lower <- c(NA, plot_df$lci)
+#   upper <- c(NA, plot_df$uci)
+#   
+#   # Generate the forest plot
+#   forestplot(
+#     labeltext = labeltext,
+#     mean  = mean,
+#     lower = lower,
+#     upper = upper,
+#     zero  = 1,
+#     xlog  = TRUE,  # Log scale for Hazard Ratios
+#     boxsize = 0.25,
+#     lineheight = unit(7, "mm"),
+#     title = paste("Forest Plot:", stratum_name),
+#     col = fpColors(
+#       box = "black",
+#       line = "black",
+#       zero = "grey40"
+#     ),
+#     xlab = "Hazard Ratio (log scale)",
+#     txt_gp = fpTxtGp(
+#       label = gpar(fontsize = 11),
+#       ticks = gpar(fontsize = 10),
+#       xlab  = gpar(fontsize = 12),
+#       title = gpar(fontsize = 14, fontface = "bold")
+#     )
+#   )
+# }
+
+library(grid) # Ensure grid is loaded for grid.rect/gpar
+
 plot_stratum_forest <- function(data, stratum_name) {
   
-  # Filter for the specific stratum and prepare the data
+  # ... [Data preparation steps remain exactly the same] ...
   plot_df <- data %>%
     filter(stratum == stratum_name) %>%
     mutate(
-      # Clean up the term names for the plot label
       display_name = clean_term_label(term),
-      
-      # Since the input CSV already has exponentiated HRs, we use them directly
       hr  = estimate,
       lci = conf.low,
       uci = conf.high
     ) %>%
-    # Optional: Arrange specific order if needed (e.g., Clusters first)
-    # This relies on the original order being Clusters -> Covariates
     mutate(
       label = paste0(
         display_name, 
@@ -414,34 +478,41 @@ plot_stratum_forest <- function(data, stratum_name) {
       )
     )
   
-  # Stop if no data found
   if(nrow(plot_df) == 0) {
     warning(paste("No data found for stratum:", stratum_name))
     return(NULL)
   }
   
-  # Create the matrix for text labels (Header + Data)
   labeltext <- rbind(
     c(paste0("Variable (", stratum_name, ")")),
     as.matrix(plot_df$label)
   )
   
-  # Create the data vectors (Header gets NA)
   mean  <- c(NA, plot_df$hr)
   lower <- c(NA, plot_df$lci)
   upper <- c(NA, plot_df$uci)
   
-  # Generate the forest plot
+  # --- CHANGE STARTS HERE ---
+  
+  # 1. Start a new page and paint the background
+  grid.newpage()
+  grid.rect(gp = gpar(fill = "#f7f1e8", col = NA))
+  
+  # 2. Generate the plot on top, disabling the default new_page
   forestplot(
     labeltext = labeltext,
     mean  = mean,
     lower = lower,
     upper = upper,
     zero  = 1,
-    xlog  = TRUE,  # Log scale for Hazard Ratios
+    xlog  = TRUE,
     boxsize = 0.25,
     lineheight = unit(7, "mm"),
     title = paste("Forest Plot:", stratum_name),
+    
+    # IMPORTANT: prevent forestplot from wiping the background
+    new_page = FALSE, 
+    
     col = fpColors(
       box = "black",
       line = "black",
@@ -456,6 +527,7 @@ plot_stratum_forest <- function(data, stratum_name) {
     )
   )
 }
+
 ```
 
 **Mid Multimorbidity Stratum (Mid_MM):**

@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <meta charset="UTF-8" />
   <title>Project MAIP – Portfolio by Hari S. Sreedeth</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -21,7 +24,7 @@
     body {
       margin: 0;
       padding: 0;
-      font-family: -apple-system, system-ui, BlinkMacSystemFont, "SF Pro Text",
+      font-family: "Inter", -apple-system, system-ui, BlinkMacSystemFont, "SF Pro Text",
         "Helvetica Neue", Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
@@ -83,8 +86,6 @@
     gap: 1rem;
     align-items: flex-start;
     justify-content: space-between;
-
-    /* --- BREAKOUT FIX --- */
     
     /* 1. Keep it big */
     width: 95vw;
@@ -393,19 +394,34 @@
     color: #7c7165;
     }
 
+    .context-abstract{
+      max-width: 920px;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 24px;
+    }
+    .context-abstract p{
+      margin: 0 0 12px;
+      font-weight: 400;
+    }
+
+
     /* Top bar / brand */
     .top-bar {
       display: flex;
-      justify-content: space-between;
-      align-items: baseline;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
       margin-bottom: 80px;
     }
 
     .brand {
-      font-size: 40px;
+      font-size: 44px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
-      font-weight: 500;
+      font-weight: 700;
+      line-height: 1.12;
     }
 
     .tagline {
@@ -413,8 +429,8 @@
       text-transform: uppercase;
       letter-spacing: 0.16em;
       color: var(--muted);
-      text-align: right;
-      max-width: 360px;
+      text-align: left;
+      max-width: 720px;
       line-height: 1.4;
     }
 
@@ -653,24 +669,43 @@
 <main>
 
   <!-- Top bar -->
-  <div class="top-bar">
-    <div class="brand">Multimorbidity-Anchored ICU Phenotypes <br>(MAIP)</div>
-    <div class="tagline">
-    A Dual-Approach Unsupervised Learning Strategy with <br>RAG-Assisted Translation of Surrogate Rules
+    <div class="top-bar">
+      <div class="brand">Multimorbidity-Anchored ICU Phenotypes (MAIP)</div>
+      <div class="tagline">
+        A Dual-Approach Unsupervised Learning Strategy with<br>
+        RAG-Assisted Translation of Surrogate Rules
+      </div>
     </div>
-  </div>
 
-            <h1 class="intro-title" id="intro">Hari S. Sreedeth</h1>
+      <h1 class="intro-title" id="intro">Hari S. Sreedeth</h1>
       <div class="intro-role">
-        Health Data Scientist &nbsp;·&nbsp; Statistical Machine Learning
+        Health Data Science &nbsp;·&nbsp; Clinical Research &nbsp;·&nbsp; Statistical Learning
       </div>
 
-                  <h2 class="service-block" id="service-block-title">Context</h2>
-      <div class="service-block-title">
-        Problem: ML models are accurate but opaque. Doctors don't trust them.<br>
-<br>
-        Solution: I built a pipeline that uses high-complexity ML to find patterns, but translates them into transparent, rule-based logic (Rulecards) that a human can audit, complete with a QC layer that mathematically guarantees the explanation matches the model.
-      </div>
+      <!-- <h2 class="service-block" id="service-block-title">Context</h2>
+      <div class="context-abstract">
+        <p>
+          ICU populations are heterogeneous: long-term outcomes reflect a mixture of baseline multimorbidity and acute
+          physiological derangement. In practice, many clustering approaches collapse into a single “more sick vs less sick”
+          axis because chronic disease burden, age and severity scores dominate similarity structure. This limits interpretability
+          and makes phenotypes hard to operationalise for stratified analysis, cohort definition, or hypothesis generation.
+        </p>
+        <p>
+          MAIP addresses this by <b>anchoring phenotyping in multimorbidity strata</b>, then learning consensus subgroups from
+          complementary data “views” (chronic comorbidity, acute physiology, and socio-context) using a lightweight similarity-network
+          fusion routine (SNF-lite). Cluster number is selected using bootstrap stability (Adjusted Rand Index), and phenotypes are
+          evaluated on held-out outcomes using unadjusted Kaplan–Meier/logrank comparisons and adjusted Cox proportional hazards
+          models, alongside discrimination checks (cross-validated C-index uplift).
+        </p>
+        <p>
+          To make the resulting phenotypes auditable, MAIP distils cluster assignments into sparse, human-readable decision rules
+          (shallow surrogate trees exported as canonical JSON), then renders clinician-facing rulecards and ASCII flowcharts via a
+          retrieval-augmented prompting pipeline using a remote model accessed through the OpenAI API (GPT-4.1-mini). A QC layer
+          programmatically verifies feature naming/units, rule coverage and synthetic-profile consistency, enabling end-to-end
+          traceability from raw data to phenotype definitions.
+        </p>
+      </div> -->
+
 
   <!-- Introduction -->
   <div class="intro-heading">Introduction</div>
@@ -680,17 +715,27 @@
     <div>
       <div class="intro-text">
         <p>
-Critically ill patients arriving in intensive care rarely fit neat templates. Even within a single ICU, patients differ widely in age, comorbidity burden, physiology and social context. This heterogeneity makes it hard to reason about prognosis, compare like with like, or decide which treatment strategies are most appropriate.
+        Critically ill patients arriving in intensive care rarely fit neat templates. Even within a single ICU, patients differ 
+        widely in age, comorbidity burden, physiology and social context. This heterogeneity makes it hard to reason about 
+        prognosis, compare like with like, or decide which treatment strategies are most appropriate.
         </p>
         <p>
-Unsupervised machine learning is an obvious tool for this problem, and a large body of ICU phenotyping work already exists. However, in practice many clustering pipelines are dominated by the blunt signal of multimorbidity: patients with more chronic disease, and who are older, simply get grouped together. The resulting “phenotypes” often mirror gradients in age and comorbidity count rather than revealing distinct, acute physiological patterns that could plausibly change clinical decisions.
+        Unsupervised machine learning is an obvious tool for this problem, and a large body of ICU phenotyping work already exists.
+        However, in practice many clustering pipelines are dominated by the blunt signal of multimorbidity: patients with more
+        chronic disease, and who are older, simply get grouped together. The resulting “phenotypes” often mirror gradients
+        in age and comorbidity count rather than revealing distinct, acute physiological patterns that could plausibly
+        change clinical decisions.
         </p>
         <div class="sidenote" id="sn1">
             <span class="sidenote-number">1</span>
             See GitHub repository: <a href="https://github.com/hsreedeth/ProjectMAIP" target="_blank">Project-MAIP</a>.
         </div>
         <p>
-The Multimorbidity-Anchored ICU Phenotypes (MAIP) project<span class="sidenote-ref" id="sn2-ref">1</span> is my attempt to tackle that limitation in a principled, end-to-end way using the SUPPORT-II cohort (over 9,000-patient sample from the Study to Understand Prognoses, Preferences, Outcomes and Risks of Treatment)<span class="sidenote-ref" id="sn1-ref">2</span>. I designed MAIP as a full pipeline that (i) explicitly separates chronic disease burden from acute physiology and (ii) carries the resulting clusters all the way through to a human-readable bedside tool. 
+        The Multimorbidity-Anchored ICU Phenotypes (MAIP) project<span class="sidenote-ref" id="sn2-ref">1</span> is my attempt
+        to tackle that limitation in a principled, end-to-end way using the SUPPORT-II cohort (over 9,000-patient sample from
+        the Study to Understand Prognoses, Preferences, Outcomes and Risks of Treatment)<span class="sidenote-ref" id="sn1-ref">2</span>.
+        designed MAIP as a full pipeline that (i) explicitly separates chronic disease burden from acute physiology and (ii)
+        carries the resulting clusters all the way through to a human-readable bedside tool. 
         </p>
         <div class="sidenote" id="sn2">
             <span class="sidenote-number">2</span>
@@ -701,7 +746,14 @@ The Multimorbidity-Anchored ICU Phenotypes (MAIP) project<span class="sidenote-r
 
     <div class="intro-text">
       <p>
-Methodologically, MAIP combines two complementary unsupervised pathways: a multimorbidity-stratified phenotyping route (MMSP) and a simplified multi-view Similarity Network Fusion implementation (SNF-lite). Once stable clusters are identified, I train a sparse decision-tree surrogate model to approximate the cluster assignments. The tree’s branch structure is exported as structured JSON rules, which are then translated into a clinician-facing rulecard and ASCII flowchart via a retrieval-augmented generation (RAG) pipeline running on remotely through chatgpt-4.1-mini model (with 7B parameters). The RAG layer is grounded in a curated corpus of variable definitions, phenotype summaries and style guidance, and is coupled with programmatic checks to ensure that the textual rulecard remains logically faithful to the underlying JSON rules.
+      Methodologically, MAIP combines two complementary unsupervised pathways: a multimorbidity-stratified phenotyping route (MMSP) 
+      and a simplified multi-view Similarity Network Fusion implementation (SNF-lite). Once stable clusters are identified, 
+      I train a sparse decision-tree surrogate model to approximate the cluster assignments. The tree’s branch structure is 
+      exported as structured JSON rules, which are then translated into a clinician-facing rulecard and ASCII flowchart 
+      using a remote model accessed through the OpenAI API (GPT-4.1-mini). 
+      The RAG layer is grounded in a curated corpus of variable definitions, phenotype summaries and style guidance, and is 
+      coupled with programmatic checks to ensure that the textual rulecard remains logically 
+      faithful to the underlying JSON rules.
       </p>
       <p>
         The project therefore has two concrete goals:
@@ -1930,12 +1982,27 @@ I worked with the SUPPORT-II ICU cohort (~9,000 critically ill adults from multi
         membership and 365-day all-cause mortality using Cox proportional hazards models, with cluster as the
         exposure and adjustment for age (standardised), sex, multimorbidity count (standardised), and acute
         physiology severity (APS, standardised). Cluster membership remained independently prognostic after
-        adjustment.
+        adjustment. In the high multimorbidity cohort (N=1100), both High_MM_1 and High_MM_2 had lower
+        mortality hazards than the reference High_MM_0 (High_MM_1 vs High_MM_0: HR 0.57 [0.39–0.82];
+        High_MM_2 vs High_MM_0: HR 0.51 [0.37–0.70]). In the mid stratum (N=3822), Mid_MM_1 showed the
+        highest adjusted risk relative to Mid_MM_0 (HR 1.87 [1.56–2.23]), with a smaller but still significant
+        elevation for Mid_MM_2 (HR 1.30 [1.11–1.53]). In the low stratum (N=4183), the coma-dominant phenotype
+        Low_MM_1 had markedly higher adjusted risk than Low_MM_0 (HR 2.36 [1.93–2.89]), while Low_MM_2 had
+        lower adjusted hazard than Low_MM_0 (HR 0.59 [0.49–0.73]), consistent with long-term risk being driven
+        by underlying disease composition in addition to acute severity. APS was the strongest and most
+        consistent covariate across strata (HR ~1.4–1.6 per 1 SD increase).
       </p>
       <p>
         Proportional hazards diagnostics based on Schoenfeld residuals indicated departures from strict PH
         assumptions even after truncation to 365 days; hazard ratios are therefore interpreted as average
-        effects over the 1-year horizon.
+        effects over the 1-year horizon and are presented alongside unadjusted KM curves as supporting evidence.
+      </p>
+      <p>
+        In addition to the adjusted Cox models reported above, I ran supporting outcome analyses to
+        contextualise these findings, including unadjusted Kaplan–Meier curves with logrank tests,
+        and non-parametric comparisons of ICU length of stay and total medical costs across phenotypes.
+        These supplementary outputs are provided in the Supplementary section (figures and tables),
+        alongside cluster profile summaries used for phenotype interpretation.
       </p>
       <br>
     </div>
@@ -2119,6 +2186,130 @@ I worked with the SUPPORT-II ICU cohort (~9,000 critically ill adults from multi
     Fig C. Adjusted hazard ratios for Low Multimorbidity stratum.
   </figcaption>
 </figure>
+
+<h3 class="section-heading">Supplementary: Secondary Outcomes - Resource Utilization</h3>
+
+<section class="intro-grid" aria-labelledby="secondary-outcomes">
+  <div>
+    <div class="intro-text">
+      <p>
+        Beyond mortality, I assessed whether the identified phenotypes corresponded to distinct patterns of healthcare
+        resource consumption. Using Kruskal-Wallis tests, I compared distributions of hospital length of stay (LOS)
+        and total medical costs across phenotypes within each stratum to quantify the operational impact of these clinical subtypes.
+      </p>
+      <p>
+        <strong>High Stratum:</strong> Significant heterogeneity was observed in both LOS ($P=0.015$) and costs ($P=0.006$).
+        The high-risk reference phenotype <strong>High_MM_0</strong> was associated with the highest resource burden
+        (Median LOS: 9.0 days; Median Cost: $23,412), while the lower-risk phenotypes High_MM_1 and High_MM_2 showed
+        reduced utilization (Median LOS: 7.0 days for both).
+      </p>
+      <p>
+        <strong>Mid Stratum:</strong> Resource utilization varied markedly ($P < 0.001$). Consistent with its high mortality risk,
+        <strong>Mid_MM_1</strong> accrued the highest median costs ($22,042) and longest stay (9.0 days), nearly double
+        the costs of the lower-risk reference Mid_MM_0 ($12,189).
+      </p>
+      <p>
+        <strong>Low Stratum:</strong> The starkest contrast mirrored the survival findings ($P < 0.001$). The high-risk
+        <strong>Low_MM_1</strong> phenotype had a median LOS of 8.0 days and costs of $21,114, whereas the protective
+        <strong>Low_MM_2</strong> phenotype demonstrated the lowest resource utilization in the entire cohort
+        (Median LOS: 4.0 days; Median Cost: $9,207).
+      </p>
+    </div>
+  </div>
+</section>
+
+<figure style="margin: 30px 0;">
+  <img
+    src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/outcomes_supporting_365d/figures/km_all_strata.png"
+    alt="365-day Kaplan–Meier curves by SNF-lite phenotype"
+    style="display:block; margin-left:auto; margin-right:auto; max-width:100%; height:auto;"
+  >
+  <figcaption style="text-align:center; font-style:italic; font-size:0.9em; color:#555;">
+    Figure: 365-day Kaplan–Meier curves by SNF-lite phenotype (stratified by multimorbidity burden)
+  </figcaption>
+
+<br>
+
+<table class="phase-table variable-table" aria-label="Median Resource Utilization by Phenotype">
+  <thead>
+    <tr>
+      <th>Stratum</th>
+      <th>Phenotype</th>
+      <th style="text-align: right;">Median LOS (days)</th>
+      <th style="text-align: right;">Median Cost ($)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="section-row">
+      <td colspan="4">High Multimorbidity</td>
+    </tr>
+    <tr>
+      <td>High</td>
+      <td><strong>High_MM_0</strong> (ref)</td>
+      <td style="text-align: right;">9.0</td>
+      <td style="text-align: right;">23,412</td>
+    </tr>
+    <tr>
+      <td>High</td>
+      <td>High_MM_1</td>
+      <td style="text-align: right;">7.0</td>
+      <td style="text-align: right;">17,358</td>
+    </tr>
+    <tr>
+      <td>High</td>
+      <td>High_MM_2</td>
+      <td style="text-align: right;">7.0</td>
+      <td style="text-align: right;">18,362</td>
+    </tr>
+
+    <tr class="section-row">
+      <td colspan="4">Mid Multimorbidity</td>
+    </tr>
+    <tr>
+      <td>Mid</td>
+      <td><strong>Mid_MM_0</strong> (ref)</td>
+      <td style="text-align: right;">6.0</td>
+      <td style="text-align: right;">12,189</td>
+    </tr>
+    <tr>
+      <td>Mid</td>
+      <td>Mid_MM_1</td>
+      <td style="text-align: right;">9.0</td>
+      <td style="text-align: right;">22,042</td>
+    </tr>
+    <tr>
+      <td>Mid</td>
+      <td>Mid_MM_2</td>
+      <td style="text-align: right;">7.0</td>
+      <td style="text-align: right;">14,842</td>
+    </tr>
+
+    <tr class="section-row">
+      <td colspan="4">Low Multimorbidity</td>
+    </tr>
+    <tr>
+      <td>Low</td>
+      <td><strong>Low_MM_0</strong> (ref)</td>
+      <td style="text-align: right;">5.0</td>
+      <td style="text-align: right;">11,353</td>
+    </tr>
+    <tr>
+      <td>Low</td>
+      <td>Low_MM_1</td>
+      <td style="text-align: right;">8.0</td>
+      <td style="text-align: right;">21,114</td>
+    </tr>
+    <tr>
+      <td>Low</td>
+      <td>Low_MM_2</td>
+      <td style="text-align: right;">4.0</td>
+      <td style="text-align: right;">9,207</td>
+    </tr>
+  </tbody>
+</table>
+<figcaption style="text-align:center; font-style:italic; font-size:0.9em; color:#555; margin-top: 10px;">
+  Table 2. Median hospital length of stay and total medical costs per phenotype. Differences across phenotypes within each stratum were statistically significant (Kruskal-Wallis P < 0.05 for High stratum; P < 0.001 for Mid/Low strata).
+</figcaption>
 
 </main>
 </body>

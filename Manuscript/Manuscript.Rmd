@@ -1,9 +1,7 @@
 ---
 title: "Multimorbidity-Anchored ICU Phenotypes (MAIP)"
-runningheader: "A Dual-Approach Unsupervised Learning
-Strategy with RAG-Assisted Translation of Surrogate Rules" # only for pdf output
-subtitle: "A Dual-Approach Unsupervised Learning
-Strategy with RAG-Assisted Translation of Surrogate Rules" # only for html output
+runningheader: "A Dual-Approach Unsupervised Learning"
+subtitle: "A Dual-Approach Unsupervised Learning"
 author: "Hari S. Sreedeth"
 date: "`r Sys.Date()`"
 output:
@@ -33,33 +31,19 @@ options(htmltools.dir.version = FALSE)
 
 # Introduction
 
-The clinical presentation of critically ill patients admitted to intensive care units
-is highly heterogeneous. This heterogeneity complicates diagnostic reasoning, prognostication,
-and treatment selection. Unsupervised machine learning has emerged as a useful
-tool for discovering data-driven patient sub-phenotypes in the ICU, but many existing approaches
-are dominated by the overwhelming signal of pre-existing chronic disease burden.
-As a result, derived clusters often recapitulate gradients in age and comorbidity count rather
-than revealing distinct, acute physiological patterns. This article describes the Multimorbidity-
-Anchored ICU Phenotypes (MAIP)^[See Github repositories [Project-MAIP](https://github.com/hsreedeth/ProjectMAIP)] project, which aims to develop and validate a phenotyping
-pipeline that explicitly disentangles the influence of multimorbidity from acute physiological
-derangement in the SUPPORT-II cohort^[The support dataset is a random sample of 1000 patients from Phases I & II of SUPPORT, [Study to Understand Prognoses Preferences Outcomes and Risks of Treatment](https://hbiostat.org/data/repo/supportdesc)]. The project employs two complementary unsupervised
-pathways: multimorbidity-stratified phenotyping (MMSP) and a simplified multiview
-similarity network fusion (SNF-lite) approach. A sparse decision-tree surrogate model
-is then trained to approximate the final cluster assignments. Its branch structure is exported
-into a structured JSON rule representation and translated into a clinician-facing rulecard
-and ASCII flowchart using a retrieval-augmented generation (RAG) pipeline running on a locally
-hosted small language model. The RAG architecture grounds the model in a curated
-knowledge base of variable definitions, phenotype summaries and style guidance, and is
-coupled with programmatic checks to ensure logical fidelity between the JSON rules and the
-textual rulecard. The anticipated outcome is a small set of stable, interpretable ICU phenotypes,
-together with an end-to-end reproducible workflow from raw data to a deployable,
-human-readable decision tool.
+Critically ill patients admitted to intensive care units (ICUs) exhibit substantial heterogeneity in both underlying chronic disease burden and acute physiological derangement. This heterogeneity complicates prognostication and the identification of clinically meaningful subgroups. Although unsupervised learning has been widely used to derive data-driven ICU phenotypes, many approaches are dominated by the strong signal of multimorbidity and age. As a result, clusters can collapse into broad severity or comorbidity gradients rather than isolating distinct *acute* clinical presentations within comparable background risk.
+
+The Multimorbidity-Anchored ICU Phenotypes (MAIP) project^[See Github repositories [Project-MAIP](https://github.com/hsreedeth/ProjectMAIP)] addresses this limitation by explicitly separating chronic disease burden from acute physiology when deriving phenotypes in the SUPPORT-II cohort of approximately 9,000 adult ICU admissions^[The support dataset is a random sample of 1000 patients from Phases I & II of SUPPORT, [Study to Understand Prognoses Preferences Outcomes and Risks of Treatment](https://hbiostat.org/data/repo/supportdesc)]. The pipeline implements two complementary unsupervised pathways: (i) multimorbidity-stratified phenotyping (MMSP) and (ii) a simplified multi-view similarity network fusion approach (SNF-lite), designed to identify phenotype structure that is not merely a reflection of comorbidity burden. Cluster solutions are assessed for stability and separability, and downstream outcome information is reserved for validation rather than used to construct the phenotypes.
+
+A central design goal of MAIP is auditability: translating high-dimensional clustering output into transparent, reviewable definitions suitable for clinical communication. To do this, a sparse decision-tree surrogate model is trained to approximate final cluster assignments, and its decision paths are exported as canonical JSON rules. These machine-readable rules are then converted into clinician-facing rulecards and ASCII flowcharts using a retrieval-augmented generation (RAG) pattern grounded in a frozen corpus of variable definitions, phenotype summaries, and style guidance. Rule translation is performed with a remote general-purpose chat model (GPT-4.1-mini, accessed via API) under deterministic constraints that prohibit new logic, and is coupled with programmatic fidelity checks to ensure that the textual rulecards preserve the original rule content. The resulting output is an end-to-end reproducible workflow from raw ICU data to stable phenotypes and an auditable, human-readable decision artifact.
 
 The primary objective of the MAIP project is therefore twofold: 
 
 1. To derive stable, clinically interpretable ICU phenotypes that are not merely reflections of comorbidity gradients, and
 2. To demonstrate a robust, auditable pathway from unsupervised clustering to a clinician-facing
 rule representation, implemented via a RAG-assisted small-model translation pipeline.
+
+---
 
 # Methods
 
@@ -301,6 +285,74 @@ knitr::kable(
 
 # Results
 
+## Cross-Validated Prognostic Value of Phenotypes
+
+Prognostic performance was evaluated using 5-fold cross-validated Harrell’s C-index for 6-month mortality within each multimorbidity stratum. The base model included age, sex, number of comorbidities (num.co), and APS, and was compared against versions augmented with MMSP or SNF-lite phenotypes. Across low ($N = 4,183$; 2,765 deaths), mid ($N = 3,822$; 2,648 deaths), and high multimorbidity ($N = 1,100$; 788 deaths), SNF-lite clusters consistently delivered larger gains in cross-validated C-index than MMSP clusters, with the strongest uplift in the low- and high-burden groups.
+
+```{r deltaC_plot, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, echo=FALSE, fig.cap="Figure 3: Cross-validated gain in Harrell’s C-index over the base clinical model, comparing MMSP and SNF-lite phenotypes within each multimorbidity stratum. The base model includes age, sex, number of comorbidities, and APS.", out.width="80%", fig.align='center'}
+knitr::include_graphics("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PortfolioMain/deltaC.png")
+```
+
+`r margin_note("Cross-validated prognostic comparison. Across all strata, SNF-lite phenotypes yielded larger cross-validated gains in discrimination than MMSP phenotypes, supporting SNF-lite as the primary multi-view phenotyping system in MAIP.")`
+
+| Stratum | Model | Mean C-index | Mean ΔC vs base |
+| --- | --- | --- | --- |
+| **High Multimorbidity** | *(4+ chronic conditions, N = 1,100)* |  |  |
+| High MM | Base clinical model | 0.659 | — |
+| High MM | Base + MMSP phenotypes | 0.662 | +0.003 |
+| High MM | Base + SNF-lite phenotypes | 0.674 | +0.015 |
+| **Mid Multimorbidity** | *(2–3 chronic conditions, N = 3,822)* |  |  |
+| Mid MM | Base clinical model | 0.642 | — |
+| Mid MM | Base + MMSP phenotypes | 0.650 | +0.007 |
+| Mid MM | Base + SNF-lite phenotypes | 0.655 | +0.012 |
+| **Low Multimorbidity** | *(0–1 chronic condition, N = 4,183)* |  |  |
+| Low MM | Base clinical model | 0.640 | — |
+| Low MM | Base + MMSP phenotypes | 0.646 | +0.006 |
+| Low MM | Base + SNF-lite phenotypes | 0.682 | +0.042 |
+
+## **Parsimony & Interpretability of Phenotyping Systems**
+
+MMSP and SNF-lite differ not only in how they discover structure but also in how compact and interpretable the resulting phenotypes are. Below, we summarise the number and balance of clusters and the complexity of the surrogate decision trees in each multimorbidity stratum.
+
+| Stratum | Method | Clusters (K) | Smallest cluster (%) | Largest cluster (%) | Rules (N) | Median conditions | Range |
+|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **High MM** | MMSP | 5 | 1.6% | 46.6% | 14 | 4 | 3–4 |
+| | SNF-lite | 3 | 31.0% | 37.5% | 14 | 4 | 3–4 |
+| **Mid MM** | MMSP | 3 | 21.7% | 49.8% | 16 | 4 | 4–4 |
+| | SNF-lite | 3 | 26.2% | 44.2% | 13 | 4 | 2–4 |
+| **Low MM** | MMSP | 4 | 8.0% | 43.8% | 15 | 4 | 3–4 |
+| | SNF-lite | 3 | 11.4% | 58.6% | 11 | 4 | 2–4 |
+
+`r margin_note("Parsimony and rule complexity. Both systems admit shallow surrogate trees with a median of four conditions per rule, but SNF-lite achieves this with fewer, generally better-balanced clusters, which simplifies explanation and naming of phenotypes for clinicians.")`
+
+```{r cluster_sizes, echo=FALSE, fig.cap="Cluster balance in SNF-lite versus MMSP phenotypes. Each bubble represents the smallest and largest clusters in the most imbalanced stratum for each method.", out.width="80%", fig.align='center'}
+knitr::include_graphics("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PortfolioMain/Cluster Sizes.svg")
+```
+
+## **Concordance & Complementarity**
+
+We next compared MMSP and SNF-lite labelings within each multimorbidity stratum. Cross-tabulations and pairwise Venn diagrams showed that no SNF-lite cluster mapped cleanly onto a single MMSP cluster or vice versa; most clusters shared only partial overlap.
+
+Agreement between MMSP and SNF-lite labels was quantified within each multimorbidity stratum using Adjusted Rand Index (ARI) and Normalised Mutual Information (NMI). Values near 0 indicate little more than random overlap; values near 1 indicate near-identical partitions.
+
+| Stratum | Sample size (N) | $K_{MMSP}$ | $K_{SNF}$ | ARI | NMI | Concordance summary |
+|:---|:---:|:---:|:---:|:---:|:---:|:---|
+| Low MM | 4,183 | 4 | 3 | 0.078 | 0.119 | Low concordance; large SNF clusters mix several MMSP phenotypes. |
+| Mid MM | 3,822 | 3 | 3 | 0.141 | 0.152 | Highest overlap, but still partial nesting and many-to-many mapping. |
+| High MM | 1,100 | 5 | 3 | 0.098 | 0.129 | Low concordance; each SNF cluster draws from multiple MMSP clusters. |
+
+`r margin_note("Table: Concordance between MMSP and SNF-lite phenotypes. ARI and NMI values around 0.1 indicate that MMSP and SNF-lite capture related but distinct structure; neither solution is a simple relabelling of the other.")`
+
+Concordance metrics were modest (**ARI 0.08–0.14; NMI 0.12–0.15**), indicating that the two methods capture related but distinct structure in the patient space. Together with the cross-validated prognostic analysis—where both labelings improved discrimination over a clinical base model but SNF-lite yielded the largest $\Delta$C—this suggests that MMSP and SNF-lite provide **complementary phenotypic views** rather than redundant partitions. We therefore treat SNF-lite phenotypes as the primary clustering solution, with MMSP phenotypes providing a physiology-focused sensitivity and interpretability check within comorbidity strata.
+
+```{r sankeys, echo=FALSE, fig.cap="Sankey diagrams showing patient flow between MMSP and SNF clusters in Low (left), Mid (center), and High (right) multimorbidity strata.", out.width="32%", fig.show='hold', fig.align='center'}
+knitr::include_graphics(c(
+  "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/sankey_Low_MM.png",
+  "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/sankey_Mid_MM.png",
+  "/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/sankey_High_MM.png"
+))
+```
+
 ## High multimorbidity stratum
 
 In the high multimorbidity stratum, SNF-lite identified three large clusters that differed both in chronic disease burden and in acute physiological derangement. The first cluster was dominated by patients with acute renal failure or multi-organ system failure on a background of substantial multimorbidity. This group had the highest concentration of organ-failure diagnoses, frequent diabetes and malignancy, and the most abnormal acute physiology scores (higher APS/SPS/AVTISS) compared with the other high-multimorbidity clusters. Together, these features are consistent with a “diabetic multi-organ failure” profile representing the most acutely unwell segment of the high-burden cohort.
@@ -428,20 +480,64 @@ ggplot(plot_data_long, aes(x = label, y = Z_Score, group = Variable, color = Var
 
 ## **Outcome associations**
 
+## Primary outcome associations (365-day mortality) {#cox-primary}
 
-`r margin_note("Table X. Cox proportional hazards models for all-cause mortality within each multimorbidity stratum. Models are adjusted for APS (per SD); cluster effects are relative to the reference cluster in that stratum.")`
+Within each multimorbidity stratum, I estimated adjusted associations between SNF-lite phenotype membership and 365-day all-cause mortality using Cox proportional hazards models, with cluster as the exposure and adjustment for age (standardised), sex, multimorbidity count (standardised), and acute physiology severity (APS, standardised). Cluster membership remained independently prognostic after adjustment. In the high multimorbidity cohort (N=1100), both High_MM_1 and High_MM_2 had lower mortality hazards than the reference High_MM_0 (High_MM_1 vs High_MM_0: HR 0.57 [0.39–0.82]; High_MM_2 vs High_MM_0: HR 0.51 [0.37–0.70]). In the mid stratum (N=3822), Mid_MM_1 showed the highest adjusted risk relative to Mid_MM_0 (HR 1.87 [1.56–2.23]), with a smaller but still significant elevation for Mid_MM_2 (HR 1.30 [1.11–1.53]). In the low stratum (N=4183), the coma-dominant phenotype Low_MM_1 had markedly higher adjusted risk than Low_MM_0 (HR 2.36 [1.93–2.89]), while Low_MM_2 had lower adjusted hazard than Low_MM_0 (HR 0.59 [0.49–0.73]), consistent with long-term risk being driven by underlying disease composition in addition to acute severity. APS was the strongest and most consistent covariate across strata (HR ~1.4–1.6 per 1 SD increase).
 
-| Stratum  | Predictor                            | HR (95% CI)              | p-value        |
-|---------|--------------------------------------|--------------------------|----------------|
-| High MM | APS (per SD)                         | 1.55 (1.37–1.75)         | 2.1 × 10^-12   |
-| High MM | Cluster High_MM_1 vs reference       | 0.68 (0.55–0.84)         | 2.5 × 10^-4    |
-| High MM | Cluster High_MM_2 vs reference       | 0.65 (0.53–0.81)         | 9.0 × 10^-5    |
-| Mid MM  | APS (per SD)                         | 1.55 (1.46–1.64)         | 9.9 × 10^-46   |
-| Mid MM  | Cluster Mid_MM_1 vs reference        | 1.33 (1.19–1.48)         | 2.3 × 10^-7    |
-| Mid MM  | Cluster Mid_MM_2 vs reference        | 1.19 (1.08–1.32)         | 8.0 × 10^-4    |
-| Low MM  | APS (per SD)                         | 1.72 (1.63–1.81)         | 6.9 × 10^-94   |
-| Low MM  | Cluster Low_MM_1 vs reference        | 1.72 (1.48–2.01)         | 2.2 × 10^-12   |
-| Low MM  | Cluster Low_MM_2 vs reference        | 0.46 (0.41–0.51)         | 7.8 × 10^-51   |
+Proportional hazards diagnostics based on Schoenfeld residuals indicated departures from strict PH assumptions even after truncation to 365 days; hazard ratios are therefore interpreted as average effects over the 1-year horizon and are presented alongside unadjusted KM curves as supporting evidence.
+
+In addition to the adjusted Cox models reported above, I ran supporting outcome analyses to contextualise these findings, including unadjusted Kaplan–Meier curves with logrank tests, and non-parametric comparisons of ICU length of stay and total medical costs across phenotypes. These supplementary outputs are provided in the Supplementary section (figures and tables), alongside cluster profile summaries used for phenotype interpretation.
+
+### High multimorbidity stratum
+
+Reference phenotype: **High_MM_0**.
+
+| Term                             | Adjusted HR (95% CI) | p-value |
+| -------------------------------- | -------------------: | ------: |
+| High_MM_1 vs High_MM_0           |     0.57 (0.39–0.82) |   0.003 |
+| High_MM_2 vs High_MM_0           |     0.51 (0.37–0.70) | 2.0e-05 |
+| Age (per 1 SD)                   |     0.96 (0.82–1.11) |   0.576 |
+| Male (vs female)                 |     1.24 (1.03–1.50) |   0.025 |
+| Multimorbidity count (per 1 SD)  |     1.02 (0.88–1.18) |   0.798 |
+| Acute physiology (APS, per 1 SD) |     1.43 (1.20–1.70) | 4.0e-05 |
+
+![Fig A. Adjusted hazard ratios for High multimorbidity stratum.](/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PrimaryOutcomesCodebook/TechnicalDocumentation_files/figure-html/KM_curves-1.png)
+
+---
+
+### Mid multimorbidity stratum
+
+Reference phenotype: **Mid_MM_0**.
+
+| Term                             | Adjusted HR (95% CI) | p-value |
+| -------------------------------- | -------------------: | ------: |
+| Mid_MM_1 vs Mid_MM_0             |     1.87 (1.56–2.23) | 2.1e-11 |
+| Mid_MM_2 vs Mid_MM_0             |     1.30 (1.11–1.53) |   0.002 |
+| Age (per 1 SD)                   |     1.28 (1.17–1.40) | 1.1e-07 |
+| Male (vs female)                 |     1.06 (0.96–1.17) |   0.239 |
+| Multimorbidity count (per 1 SD)  |     0.92 (0.83–1.01) |   0.101 |
+| Acute physiology (APS, per 1 SD) |     1.63 (1.49–1.78) | 2.6e-26 |
+
+![Fig B. Adjusted hazard ratios for Mid multimorbidity stratum.](/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PrimaryOutcomesCodebook/TechnicalDocumentation_files/figure-html/KM_curves-2.png)
+
+---
+
+### Low multimorbidity stratum
+
+Reference phenotype: **Low_MM_0**.
+
+| Term                             | Adjusted HR (95% CI) | p-value |
+| -------------------------------- | -------------------: | ------: |
+| Low_MM_1 vs Low_MM_0             |     2.36 (1.93–2.89) | 1.2e-15 |
+| Low_MM_2 vs Low_MM_0             |     0.59 (0.49–0.73) | 1.5e-04 |
+| Age (per 1 SD)                   |     1.22 (1.11–1.34) | 5.3e-05 |
+| Male (vs female)                 |     1.06 (0.93–1.21) |   0.427 |
+| Multimorbidity count (per 1 SD)  |     1.66 (1.47–1.87) | 9.9e-17 |
+| Acute physiology (APS, per 1 SD) |     1.48 (1.33–1.65) | 2.2e-11 |
+
+![Fig C. Adjusted hazard ratios for Low multimorbidity stratum.](/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PrimaryOutcomesCodebook/TechnicalDocumentation_files/figure-html/KM_curves-3.png)
+
+
 
 ## **Surrogate trees and LLM-derived rulecards** 
 
@@ -567,3 +663,5 @@ Consistent with the survival separation, length of stay (LOS) and total cost als
 Although effect-size estimates (medians and interquartile ranges) are reported separately, these p-values confirm that the phenotypes map onto distinct patterns of healthcare utilisation: clusters with more acute physiological derangement and multi-organ failure tend to have longer stays and higher costs, while the low-acuity phenotypes have substantially shorter stays and lower expenditure.
 
 **Taken together, these results show that the clustered phenotypes are not merely proxies for APS or comorbidity count: cluster membership remains strongly associated with mortality after adjusting for acute physiology within each comorbidity stratum.** 
+
+
