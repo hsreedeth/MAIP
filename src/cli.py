@@ -107,8 +107,8 @@ def build_rulecards(
             ]
         )
 
-    # --- 3. Canonical remote rulecard generation ----------------------------
-    # This assumes your `src.run_rulecards_remote_canonical` accepts:
+    # 3. Canonical remote rulecard generation 
+    # This is built for `src.run_rulecards_remote_canonical` and accepts:
     #   --in-root reports/rulecards_rag
     #   --out-root reports/rulecards_final
     # and writes rulecards into e.g. <out-root>/<high|mid|low>/rulecard_*.md

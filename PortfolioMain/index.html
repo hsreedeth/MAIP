@@ -765,7 +765,7 @@
     </div>
   </section>
 
-  <!-- Capabilities / Services -->
+  <!-- Capabilities / Services
   <h2 class="section-heading">Project Overview</h2>
   <p class="section-lead">
     I treat each project as a combination of research and
@@ -830,13 +830,13 @@
         prompts and model outputs are versioned for auditability.
       </p>
     </div>
-  </section>
+  </section> -->
 
   <img
   src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PortfolioMain/Overview Schematic.svg"
   alt="Overview schematic"
   style="display:block; margin-left:auto; max-width:100%; height:auto;"
->
+  >
 
   <!-- Phase matrix
   <h2 class="section-heading">Where I Add Value</h2>
@@ -920,21 +920,35 @@
   </table> -->
 
   <!-- Methods -->
-  <h2 class="section-heading">Data source, Feature engineering and View construction</h2>
+  <h2 class="section-heading">Study design and data source</h2>
 
-  <section class="intro-grid" aria-labelledby="intro">
-    <div>
+  <!-- <section class="intro-grid" aria-labelledby="intro">
+    <div> -->
       <div class="intro-text">
         <p>
-I worked with the SUPPORT-II ICU cohort (~9,000 critically ill adults from multiple North American centres in the late 1980s–1990s), which includes rich baseline demographics, comorbidities, physiology at ICU admission, prognostic scores and follow-up outcomes (mortality, length of stay, resource use). For phenotyping, I built a clean feature matrix X and a held-out outcome matrix Y: X feeds the unsupervised models and surrogate trees, while Y (in-hospital and 5-year mortality, time-to-event and utilisation) is used only for external validation, never for clustering. X is organised into three clinically meaningful views: a comorbidity view (num.co, disease indicators, grouped diagnoses), a physiology view (vitals, labs, blood gases, severity scores., transformed and z-scaled), and a socio-contextual view (age, sex, SES proxies, treatment context). Categorical variables are encoded to preserve interpretability, and missing data are handled by an outcome-blind imputation recipe with documented seeds and predictors. This design gives me a reproducible, view-structured feature space for discovering phenotypes and a separate outcome layer for testing whether those phenotypes actually improve prognostic performance.
+        The study is styled as a retrospective cohort analysis using the SUPPORT-II dataset. Analyses were performed on a cleaned analytic cohort 
+        of 9,105 adult ICU admissions with baseline data sufficient to construct the chronic comorbidity and acute physiology 
+        feature views used for phenotyping. The cohort is characterised by an older case-mix (age median 64.9 years, IQR 52.8–74.0) 
+        and a modest male predominance (56%). Race was predominantly White (~79%) with a substantial Black minority (~15%). 
+        Chronic disease burden was moderate overall (comorbidity count median 2, IQR 1–3., range 0–9), and baseline functional status 
+        (ADL-based score) was low-to-moderate (median 1, IQR 0–2).
+        </p>
+        <p>
+        Physiological measurements near ICU admission span a wide acuity range (e.g., APS median 34, IQR 23–49., PaO₂/FiO₂ ratio 
+        median 276, IQR 180–333., creatinine median 1.2 mg/dL, IQR 0.9–1.9), supporting discovery of within-stratum acute 
+        presentations rather than a single severity gradient. Outcomes were available for validation only, including in-hospital 
+        mortality (25.9%), time to death/censoring (d.time median 233 days, IQR 26–761), ICU and hospital length of stay 
+        (median 5 and 11 days, respectively), and total medical costs (median ~$27.6k, IQR ~$13.9k–$64.3k). No outcome 
+        variables were used to construct phenotypes., outcome fields were held out and reserved for downstream validation analyses.
         </p>
       </div>
-    </div><br>
-  </section>
+    <!-- </div><br> -->
+  <!-- </section> -->
+
 <h3 class="section-heading">Variable Summary</h3>
 <p class="section-lead">
-  Key baseline characteristics of the SUPPORT-II cohort. Continuous variables are
-  summarised as mean&nbsp;&plusmn;&nbsp;SD and median (IQR); categorical variables as
+  Key characteristics of the SUPPORT-II cohort (N=9,105). Continuous variables are
+  summarised as mean&nbsp;&plusmn;&nbsp;SD and median (IQR); binary variables as
   N&nbsp;(%).
 </p><br>
 
@@ -948,7 +962,6 @@ I worked with the SUPPORT-II ICU cohort (~9,000 critically ill adults from multi
     </tr>
   </thead>
   <tbody>
-    <!-- Demographics -->
     <tr class="section-row">
       <td colspan="4">Demographics</td>
     </tr>
@@ -956,134 +969,192 @@ I worked with the SUPPORT-II ICU cohort (~9,000 critically ill adults from multi
       <td>Age (years)</td>
       <td>62.65&nbsp;&plusmn;&nbsp;15.59</td>
       <td>64.86 (52.80,&nbsp;73.99)</td>
-      <td>Continuous (slightly skewed)</td>
+      <td>Continuous</td>
     </tr>
     <tr>
-      <td>Male sex</td>
-      <td>5123 (56.27%)</td>
+      <td>Male sex (sex=1)</td>
+      <td>5,125 (56.27%)</td>
       <td>&mdash;</td>
-      <td>Categorical</td>
+      <td>Binary</td>
     </tr>
     <tr>
-      <td>Race: White</td>
-      <td>7190 (78.97%)</td>
-      <td>&mdash;</td>
-      <td>Categorical</td>
-    </tr>
-    <tr>
-      <td>Race: Black</td>
-      <td>1391 (15.28%)</td>
-      <td>&mdash;</td>
-      <td>Categorical</td>
-    </tr>
-    <tr>
-      <td>Income (Level 1–4)</td>
+      <td>Income category (1–4)</td>
       <td>1.94&nbsp;&plusmn;&nbsp;0.89</td>
-      <td>2.0 (1.0,&nbsp;2.0)</td>
-      <td>Ordinal (skewed)</td>
+      <td>2.00 (1.00,&nbsp;2.00)</td>
+      <td>Ordinal</td>
+    </tr>
+    <tr>
+      <td>Education (years)</td>
+      <td>11.37&nbsp;&plusmn;&nbsp;3.22</td>
+      <td>12.00 (10.00,&nbsp;14.00)</td>
+      <td>Integer</td>
     </tr>
 
-    <!-- Multimorbidity & Chronic Conditions -->
     <tr class="section-row">
-      <td colspan="4">Multimorbidity &amp; Chronic Conditions</td>
+      <td colspan="4">Multimorbidity &amp; Chronic conditions</td>
     </tr>
     <tr>
-      <td>Number of comorbidities (num.co)</td>
+      <td>Comorbidity count (num.co)</td>
       <td>1.87&nbsp;&plusmn;&nbsp;1.34</td>
-      <td>2.0 (1.0,&nbsp;3.0)</td>
+      <td>2.00 (1.00,&nbsp;3.00)</td>
       <td>Count (skewed)</td>
     </tr>
     <tr>
-      <td>Cancer (ca)</td>
-      <td>0.55&nbsp;&plusmn;&nbsp;0.81</td>
-      <td>0.0 (0.0,&nbsp;1.0)</td>
-      <td>Index / binary</td>
-    </tr>
-    <tr>
-      <td>Diabetes mellitus</td>
-      <td>1789 (19.65%)</td>
+      <td>Diabetes</td>
+      <td>1,789 (19.65%)</td>
       <td>&mdash;</td>
       <td>Binary</td>
+    </tr>
+    <tr>
+      <td>Dementia</td>
+      <td>553 (6.07%)</td>
+      <td>&mdash;</td>
+      <td>Binary</td>
+    </tr>
+    <tr>
+      <td>Cancer status (ca, 0–2)</td>
+      <td>0.55&nbsp;&plusmn;&nbsp;0.81</td>
+      <td>0.00 (0.00,&nbsp;1.00)</td>
+      <td>Ordinal index</td>
     </tr>
     <tr>
       <td>Chronic heart failure (dzgroup_chf)</td>
-      <td>1387 (15.23%)</td>
+      <td>1,387 (15.23%)</td>
       <td>&mdash;</td>
       <td>Binary</td>
     </tr>
     <tr>
-      <td>Chronic obstructive pulmonary disease (dzgroup_copd)</td>
+      <td>COPD (dzgroup_copd)</td>
       <td>967 (10.62%)</td>
       <td>&mdash;</td>
       <td>Binary</td>
     </tr>
 
-    <!-- Severity & Acute Status -->
     <tr class="section-row">
-      <td colspan="4">Severity &amp; Acute Status</td>
+      <td colspan="4">Acute physiology &amp; severity (Day-3 assessment)</td>
     </tr>
     <tr>
       <td>Acute Physiology Score (aps)</td>
       <td>37.60&nbsp;&plusmn;&nbsp;19.90</td>
-      <td>34.0 (23.0,&nbsp;49.0)</td>
+      <td>34.00 (23.00,&nbsp;49.00)</td>
       <td>Continuous (skewed)</td>
     </tr>
     <tr>
-      <td>Mean blood pressure (meanbp, mmHg)</td>
+      <td>SUPPORT prognostic score (sps)</td>
+      <td>25.74&nbsp;&plusmn;&nbsp;13.96</td>
+      <td>23.90 (15.00,&nbsp;34.10)</td>
+      <td>Continuous</td>
+    </tr>
+    <tr>
+      <td>Mean arterial pressure (meanbp, mmHg)</td>
       <td>84.55&nbsp;&plusmn;&nbsp;27.69</td>
-      <td>77.0 (63.0,&nbsp;107.0)</td>
+      <td>77.00 (63.00,&nbsp;107.00)</td>
       <td>Continuous (skewed)</td>
     </tr>
     <tr>
-      <td>PaO<sub>2</sub>/FiO<sub>2</sub> ratio (pafi)</td>
+      <td>PaO<sub>2</sub>/FiO<sub>2</sub> ratio (pafi, mmHg)</td>
       <td>263.39&nbsp;&plusmn;&nbsp;102.67</td>
       <td>276.19 (180.00,&nbsp;333.30)</td>
       <td>Continuous</td>
     </tr>
     <tr>
-      <td>Albumin (alb, g/dL)</td>
-      <td>3.15&nbsp;&plusmn;&nbsp;0.68</td>
-      <td>3.5 (2.7,&nbsp;3.5)</td>
-      <td>Continuous (low average)</td>
-    </tr>
-    <tr>
       <td>Creatinine (crea, mg/dL)</td>
       <td>1.77&nbsp;&plusmn;&nbsp;1.68</td>
       <td>1.20 (0.90,&nbsp;1.90)</td>
-      <td>Continuous (highly skewed)</td>
+      <td>Continuous (skewed)</td>
+    </tr>
+    <tr>
+      <td>Albumin (alb, g/dL)</td>
+      <td>3.15&nbsp;&plusmn;&nbsp;0.68</td>
+      <td>3.50 (2.70,&nbsp;3.50)</td>
+      <td>Continuous</td>
+    </tr>
+    <tr>
+      <td>Total bilirubin (bili, mg/dL)</td>
+      <td>2.55&nbsp;&plusmn;&nbsp;4.42</td>
+      <td>1.00 (0.50,&nbsp;2.50)</td>
+      <td>Continuous (skewed)</td>
+    </tr>
+    <tr>
+      <td>Blood urea nitrogen (bun, mg/dL)</td>
+      <td>30.67&nbsp;&plusmn;&nbsp;22.29</td>
+      <td>25.00 (15.00,&nbsp;40.00)</td>
+      <td>Continuous (skewed)</td>
+    </tr>
+    <tr>
+      <td>White blood cell count (wblc, &times;10<sup>3</sup>/&micro;L)</td>
+      <td>14.76&nbsp;&plusmn;&nbsp;9.46</td>
+      <td>13.00 (8.90,&nbsp;18.50)</td>
+      <td>Continuous (skewed)</td>
+    </tr>
+    <tr>
+      <td>Urine output (urine, L/day)</td>
+      <td>1.71&nbsp;&plusmn;&nbsp;1.40</td>
+      <td>1.47 (0.80,&nbsp;2.27)</td>
+      <td>Continuous (skewed)</td>
     </tr>
 
-    <!-- Outcomes & Resource Use -->
     <tr class="section-row">
-      <td colspan="4">Outcomes &amp; Resource Use</td>
+      <td colspan="4">Outcomes &amp; resource use (held out for validation)</td>
     </tr>
     <tr>
-      <td>Death (any)</td>
-      <td>6201 (68.10%)</td>
+      <td>In-hospital death (hospdead)</td>
+      <td>2,360 (25.92%)</td>
       <td>&mdash;</td>
       <td>Binary</td>
     </tr>
     <tr>
-      <td>Hospital death (hospdead)</td>
-      <td>2359 (25.91%)</td>
-      <td>&mdash;</td>
-      <td>Binary</td>
+      <td>Follow-up time (d.time, days)</td>
+      <td>478.45&nbsp;&plusmn;&nbsp;567.46</td>
+      <td>233.00 (26.00,&nbsp;761.00)</td>
+      <td>Time-to-event (skewed)</td>
     </tr>
     <tr>
-      <td>Length of stay (slos, days)</td>
+      <td>Hospital length of stay (slos, days)</td>
       <td>17.86&nbsp;&plusmn;&nbsp;22.01</td>
-      <td>11.0 (6.0,&nbsp;20.0)</td>
-      <td>Count (highly skewed)</td>
+      <td>11.00 (6.00,&nbsp;20.00)</td>
+      <td>Continuous (skewed)</td>
     </tr>
     <tr>
       <td>Total medical cost (totmcst, $)</td>
       <td>28,839.15&nbsp;&plusmn;&nbsp;43,608.61</td>
       <td>13,228.93 (5,179.89,&nbsp;34,263.85)</td>
-      <td>Cost (missing &asymp; 38%)</td>
+      <td>Cost (38.2% missing)</td>
     </tr>
   </tbody>
 </table>
 
+
+<h3 class="section-heading">Feature engineering and view construction</h3>
+  <div class="intro-text">
+    <p>
+      To support multi-view phenotyping, X was organised into three views constructed deterministically from the cleaned SUPPORT-II table. 
+      The comorbidity view includes chronic burden variables (num.co, diabetes, dementia, ca) and diagnostic-group indicators derived from 
+      dzgroup (expanded to one-hot columns dzgroup_*). The physiology view includes Day-3 physiologic measurements and severity/coma 
+      variables (meanbp, hrt, resp, temp, wblc, sod, crea, alb, bili, bun, ph, pafi, urine, glucose, aps, sps, scoma, avtiss) and 
+      selected baseline indicators used in similarity modelling (including one-hot encodings derived from race and dnr). The 
+      socio-contextual view includes baseline demographic and socioeconomic proxies (age, sex, income, edu). Categorical fields 
+      were converted into explicit indicator columns (e.g., race_*, dnr_*, dzgroup_*), and ordinal fields were mapped into ordered 
+      integer scales (e.g., income recoded to 1–4). Diagnostic class (dzclass) was expanded during preprocessing but was not retained 
+      in the final feature set used for modelling.
+    </p>
+    <br>
+              <img
+  src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PortfolioMain/ViewConstructionF.svg"
+  alt="View construction schematic"
+  style="display:block; margin-left:auto; max-width:100%; height:auto;"
+  >
+  <br>
+    <p>
+      Missingness in X was handled without reference to Y. Prior to imputation, records missing any “low-missingness” core variables 
+      (operationalised as variables with ≤82 missing values in the analytic extract) were removed. For a small set of physiologic fields, 
+      missing values were initialised to clinically typical defaults (alb=3.5, pafi=300, bili=0.8, crea=1.0, bun=20, wblc=10, urine=1.0) 
+      before multivariable imputation. Remaining missing values in X were imputed using an iterative multivariable procedure 
+      (IterativeImputer with BayesianRidge, max_iter=50, random_state=42) applied only to the feature set (excluding eid and all Y fields). 
+      After imputation, constrained variables were rounded and clipped to preserve valid support for downstream modelling 
+      (e.g., income limited to 1–4; edu limited to 0–31; binary indicators coerced to {0,1}).
+    </p>
+  </div>
 <h3 class="section-heading">Phenotyping Strategy</h3>
   <section class="intro-grid" aria-labelledby="intro">
     <div>
