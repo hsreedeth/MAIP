@@ -742,6 +742,69 @@
     white-space: inherit;
   }
 
+      .bubble-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:18px;
+    }
+
+    .bubble-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+
+      padding:10px 14px;
+      border-radius:999px;
+
+      border:1px solid rgba(0,0,0,0.14);
+      background:#ffffff;
+
+      font-weight:600;
+      font-size:14px;
+      letter-spacing:0.01em;
+      color:#111;
+
+      text-decoration:none;
+      box-shadow:0 1px 0 rgba(0,0,0,0.04);
+      transition:transform 120ms ease, box-shadow 120ms ease, background 120ms ease, border-color 120ms ease;
+    }
+
+    .bubble-btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 24px rgba(0,0,0,0.08);
+      border-color:rgba(0,0,0,0.20);
+    }
+
+    .bubble-btn:active{
+      transform:translateY(0px);
+      box-shadow:0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .bubble-btn:focus-visible{
+      outline:2px solid rgba(0,0,0,0.55);
+      outline-offset:3px;
+    }
+
+    .bubble-btn-icon{
+      display:inline-flex;
+      width:18px;
+      height:18px;
+      align-items:center;
+      justify-content:center;
+
+      border-radius:999px;
+      border:1px solid rgba(0,0,0,0.12);
+      font-size:12px;
+      line-height:1;
+      opacity:0.9;
+    }
+
+    .bubble-btn--ghost{
+      background:transparent;
+    }
+
+
   </style>
 </head>
 <body>
@@ -2378,6 +2441,130 @@
   </figcaption>
 </figure>
 
+<h3 class="section-heading">Secondary Outcomes - Resource Utilization</h3>
+
+<section class="intro-grid" aria-labelledby="secondary-outcomes">
+  <div>
+    <div class="intro-text">
+      <p>
+        Beyond mortality, I assessed whether the identified phenotypes corresponded to distinct patterns of healthcare
+        resource consumption. Using Kruskal-Wallis tests, I compared distributions of hospital length of stay (LOS)
+        and total medical costs across phenotypes within each stratum to quantify the operational impact of these clinical subtypes.
+      </p>
+      <p>
+        <strong>High Stratum:</strong> Significant heterogeneity was observed in both LOS ($P=0.015$) and costs ($P=0.006$).
+        The high-risk reference phenotype <strong>High_MM_0</strong> was associated with the highest resource burden
+        (Median LOS: 9.0 days; Median Cost: $23,412), while the lower-risk phenotypes High_MM_1 and High_MM_2 showed
+        reduced utilization (Median LOS: 7.0 days for both).
+      </p>
+      <p>
+        <strong>Mid Stratum:</strong> Resource utilization varied markedly ($P < 0.001$). Consistent with its high mortality risk,
+        <strong>Mid_MM_1</strong> accrued the highest median costs ($22,042) and longest stay (9.0 days), nearly double
+        the costs of the lower-risk reference Mid_MM_0 ($12,189).
+      </p>
+      <p>
+        <strong>Low Stratum:</strong> The starkest contrast mirrored the survival findings ($P < 0.001$). The high-risk
+        <strong>Low_MM_1</strong> phenotype had a median LOS of 8.0 days and costs of $21,114, whereas the protective
+        <strong>Low_MM_2</strong> phenotype demonstrated the lowest resource utilization in the entire cohort
+        (Median LOS: 4.0 days; Median Cost: $9,207).
+      </p>
+    </div>
+  </div>
+</section>
+
+<figure style="margin: 30px 0;">
+  <img
+    src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/outcomes_supporting_365d/figures/km_all_strata.png"
+    alt="365-day Kaplan–Meier curves by SNF-lite phenotype"
+    style="display:block; margin-left:auto; margin-right:auto; max-width:100%; height:auto;"
+  >
+  <figcaption style="text-align:center; font-style:italic; font-size:0.9em; color:#555;">
+    Figure: 365-day Kaplan–Meier curves by SNF-lite phenotype (stratified by multimorbidity burden)
+  </figcaption>
+
+<br>
+
+<table class="phase-table variable-table" aria-label="Median Resource Utilization by Phenotype">
+  <thead>
+    <tr>
+      <th>Stratum</th>
+      <th>Phenotype</th>
+      <th style="text-align: right;">Median LOS (days)</th>
+      <th style="text-align: right;">Median Cost ($)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="section-row">
+      <td colspan="4">High Multimorbidity</td>
+    </tr>
+    <tr>
+      <td>High</td>
+      <td><strong>High_MM_0</strong> (ref)</td>
+      <td style="text-align: right;">9.0</td>
+      <td style="text-align: right;">23,412</td>
+    </tr>
+    <tr>
+      <td>High</td>
+      <td>High_MM_1</td>
+      <td style="text-align: right;">7.0</td>
+      <td style="text-align: right;">17,358</td>
+    </tr>
+    <tr>
+      <td>High</td>
+      <td>High_MM_2</td>
+      <td style="text-align: right;">7.0</td>
+      <td style="text-align: right;">18,362</td>
+    </tr>
+
+    <tr class="section-row">
+      <td colspan="4">Mid Multimorbidity</td>
+    </tr>
+    <tr>
+      <td>Mid</td>
+      <td><strong>Mid_MM_0</strong> (ref)</td>
+      <td style="text-align: right;">6.0</td>
+      <td style="text-align: right;">12,189</td>
+    </tr>
+    <tr>
+      <td>Mid</td>
+      <td>Mid_MM_1</td>
+      <td style="text-align: right;">9.0</td>
+      <td style="text-align: right;">22,042</td>
+    </tr>
+    <tr>
+      <td>Mid</td>
+      <td>Mid_MM_2</td>
+      <td style="text-align: right;">7.0</td>
+      <td style="text-align: right;">14,842</td>
+    </tr>
+
+    <tr class="section-row">
+      <td colspan="4">Low Multimorbidity</td>
+    </tr>
+    <tr>
+      <td>Low</td>
+      <td><strong>Low_MM_0</strong> (ref)</td>
+      <td style="text-align: right;">5.0</td>
+      <td style="text-align: right;">11,353</td>
+    </tr>
+    <tr>
+      <td>Low</td>
+      <td>Low_MM_1</td>
+      <td style="text-align: right;">8.0</td>
+      <td style="text-align: right;">21,114</td>
+    </tr>
+    <tr>
+      <td>Low</td>
+      <td>Low_MM_2</td>
+      <td style="text-align: right;">4.0</td>
+      <td style="text-align: right;">9,207</td>
+    </tr>
+  </tbody>
+</table>
+<figcaption style="text-align:center; font-style:italic; font-size:0.9em; color:#555; margin-top: 10px;">
+  Table 2. Median hospital length of stay and total medical costs per phenotype. Differences across phenotypes within each stratum were statistically significant (Kruskal-Wallis P < 0.05 for High stratum; P < 0.001 for Mid/Low strata).
+</figcaption>
+
 <h3 class="section-heading">Surrogate trees and LLM-derived rulecards</h3>
 <p class="section-lead">
   To translate SNF-lite phenotypes into compact, auditable decision logic, we fit constrained
@@ -2559,139 +2746,55 @@
   </p>
 </div>
 
+<h2 class="section-heading">Conclusion</h2>
+<p class="section-lead">
+  MAIP is an end-to-end, multimorbidity-anchored phenotyping and translation pipeline: from
+  multi-view unsupervised learning to auditable, clinician-readable decision logic.
+</p>
 
-<h3 class="section-heading">Supplementary: Secondary Outcomes - Resource Utilization</h3>
-
-<section class="intro-grid" aria-labelledby="secondary-outcomes">
-  <div>
-    <div class="intro-text">
-      <p>
-        Beyond mortality, I assessed whether the identified phenotypes corresponded to distinct patterns of healthcare
-        resource consumption. Using Kruskal-Wallis tests, I compared distributions of hospital length of stay (LOS)
-        and total medical costs across phenotypes within each stratum to quantify the operational impact of these clinical subtypes.
-      </p>
-      <p>
-        <strong>High Stratum:</strong> Significant heterogeneity was observed in both LOS ($P=0.015$) and costs ($P=0.006$).
-        The high-risk reference phenotype <strong>High_MM_0</strong> was associated with the highest resource burden
-        (Median LOS: 9.0 days; Median Cost: $23,412), while the lower-risk phenotypes High_MM_1 and High_MM_2 showed
-        reduced utilization (Median LOS: 7.0 days for both).
-      </p>
-      <p>
-        <strong>Mid Stratum:</strong> Resource utilization varied markedly ($P < 0.001$). Consistent with its high mortality risk,
-        <strong>Mid_MM_1</strong> accrued the highest median costs ($22,042) and longest stay (9.0 days), nearly double
-        the costs of the lower-risk reference Mid_MM_0 ($12,189).
-      </p>
-      <p>
-        <strong>Low Stratum:</strong> The starkest contrast mirrored the survival findings ($P < 0.001$). The high-risk
-        <strong>Low_MM_1</strong> phenotype had a median LOS of 8.0 days and costs of $21,114, whereas the protective
-        <strong>Low_MM_2</strong> phenotype demonstrated the lowest resource utilization in the entire cohort
-        (Median LOS: 4.0 days; Median Cost: $9,207).
-      </p>
-    </div>
-  </div>
+<section class="intro-grid" aria-labelledby="conclusion">
+  <div class="intro-text">
+    <p>
+      In the SUPPORT-II cohort, stratifying by baseline multimorbidity before clustering made the target
+      problem explicit: within comparable chronic disease burden, identify distinct acute physiologic
+      presentations and care-context patterns. Across low, mid and high multimorbidity strata, the
+      SNF-lite multi-view fusion approach produced stable, clinically coherent phenotypes with stronger
+      internal validity and larger cross-validated discrimination gains than the physiology-only MMSP
+      baseline.
+    </p>
+    <p>
+      These phenotypes were not treated as opaque labels. I distilled each stratum’s SNF-lite assignments
+      into shallow decision-tree surrogates, exported the leaf paths as canonical JSON rules, and produced
+      clinician-facing rulecards and ASCII flowcharts via a controlled remote LLM translation step. A
+      programmatic QC layer checks rule coverage and dictionary alignment, preserving traceability from
+      cluster definition to bedside-readable logic.
+    </p>
+    <p>
+      Together, this work demonstrates a maintainable pattern for clinically grounded unsupervised
+      phenotyping: separate chronic burden from acute state, fuse complementary data views, validate on
+      held-out outcomes, and operationalise phenotypes through versioned, auditable rules. Supporting
+      Kaplan–Meier, LOS and cost analyses are provided in the Supplementary section to contextualise the
+      primary mortality findings.
+    </p>
 </section>
 
-<figure style="margin: 30px 0;">
-  <img
-    src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/outcomes_supporting_365d/figures/km_all_strata.png"
-    alt="365-day Kaplan–Meier curves by SNF-lite phenotype"
-    style="display:block; margin-left:auto; margin-right:auto; max-width:100%; height:auto;"
-  >
-  <figcaption style="text-align:center; font-style:italic; font-size:0.9em; color:#555;">
-    Figure: 365-day Kaplan–Meier curves by SNF-lite phenotype (stratified by multimorbidity burden)
-  </figcaption>
+  </div>
+    <div class="bubble-actions" aria-label="Project links">
+    <a class="bubble-btn" href="https://hsreedeth.github.io/maip_page/#/" target="_blank" rel="noopener noreferrer">
+      Project demo
+      <span class="bubble-btn-icon" aria-hidden="true">↗</span>
+    </a>
 
-<br>
+    <a class="bubble-btn bubble-btn--ghost" href="https://github.com/hsreedeth/MAIP" target="_blank" rel="noopener noreferrer">
+      GitHub repo
+      <span class="bubble-btn-icon" aria-hidden="true">↗</span>
+    </a>
+  </div>
 
-<table class="phase-table variable-table" aria-label="Median Resource Utilization by Phenotype">
-  <thead>
-    <tr>
-      <th>Stratum</th>
-      <th>Phenotype</th>
-      <th style="text-align: right;">Median LOS (days)</th>
-      <th style="text-align: right;">Median Cost ($)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr class="section-row">
-      <td colspan="4">High Multimorbidity</td>
-    </tr>
-    <tr>
-      <td>High</td>
-      <td><strong>High_MM_0</strong> (ref)</td>
-      <td style="text-align: right;">9.0</td>
-      <td style="text-align: right;">23,412</td>
-    </tr>
-    <tr>
-      <td>High</td>
-      <td>High_MM_1</td>
-      <td style="text-align: right;">7.0</td>
-      <td style="text-align: right;">17,358</td>
-    </tr>
-    <tr>
-      <td>High</td>
-      <td>High_MM_2</td>
-      <td style="text-align: right;">7.0</td>
-      <td style="text-align: right;">18,362</td>
-    </tr>
-
-    <tr class="section-row">
-      <td colspan="4">Mid Multimorbidity</td>
-    </tr>
-    <tr>
-      <td>Mid</td>
-      <td><strong>Mid_MM_0</strong> (ref)</td>
-      <td style="text-align: right;">6.0</td>
-      <td style="text-align: right;">12,189</td>
-    </tr>
-    <tr>
-      <td>Mid</td>
-      <td>Mid_MM_1</td>
-      <td style="text-align: right;">9.0</td>
-      <td style="text-align: right;">22,042</td>
-    </tr>
-    <tr>
-      <td>Mid</td>
-      <td>Mid_MM_2</td>
-      <td style="text-align: right;">7.0</td>
-      <td style="text-align: right;">14,842</td>
-    </tr>
-
-    <tr class="section-row">
-      <td colspan="4">Low Multimorbidity</td>
-    </tr>
-    <tr>
-      <td>Low</td>
-      <td><strong>Low_MM_0</strong> (ref)</td>
-      <td style="text-align: right;">5.0</td>
-      <td style="text-align: right;">11,353</td>
-    </tr>
-    <tr>
-      <td>Low</td>
-      <td>Low_MM_1</td>
-      <td style="text-align: right;">8.0</td>
-      <td style="text-align: right;">21,114</td>
-    </tr>
-    <tr>
-      <td>Low</td>
-      <td>Low_MM_2</td>
-      <td style="text-align: right;">4.0</td>
-      <td style="text-align: right;">9,207</td>
-    </tr>
-  </tbody>
-</table>
-<figcaption style="text-align:center; font-style:italic; font-size:0.9em; color:#555; margin-top: 10px;">
-  Table 2. Median hospital length of stay and total medical costs per phenotype. Differences across phenotypes within each stratum were statistically significant (Kruskal-Wallis P < 0.05 for High stratum; P < 0.001 for Mid/Low strata).
-</figcaption>
 
 </main>
 </body>
 </html>
-
-
-
-
-
 
   <!-- <p class="section-lead">
     Selected work that illustrates the skills above. Each project is backed by
