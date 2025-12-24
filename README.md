@@ -1,5 +1,5 @@
-<div align = "center>
-   <img height = "auto", width = "auto" src = "https://i.postimg.cc/pXk4FKnJ/Main-Repo-Cover.jpg" alt = "MAIP Repo Cover"/>
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://i.postimg.cc/pXk4FKnJ/Main-Repo-Cover.jpg" />
 </div>
 
 # MAIP: Multimorbidity-Aware ICU Phenotyping
