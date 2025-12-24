@@ -1,3 +1,7 @@
+<div align = "center>
+   <img height = "auto", width = "auto" src = "https://i.postimg.cc/pXk4FKnJ/Main-Repo-Cover.jpg" alt = "MAIP Repo Cover"/>
+</div>
+
 # MAIP: Multimorbidity-Aware ICU Phenotyping
 
 This repository contains the full, auditable pipeline we use to derive interpretable ICU phenotypes from multimodal data, translate surrogate decision-tree rules into clinician-facing “rulecards,” and validate those translations end to end. The code is designed for repeatable analysis, deterministic prompt construction, and automated QC of every generated artifact.
