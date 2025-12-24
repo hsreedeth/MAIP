@@ -1,0 +1,283 @@
+---
+title: "From Clusters to Bedside"
+runningheader: "Multimorbidity-Anchored ICU Phenotypes via Similarity Network Fusion and RAG-Verified Surrogate Rules." # only for pdf output
+subtitle: "Multimorbidity-Anchored ICU Phenotypes via Similarity Network Fusion and RAG-Verified Surrogate Rules." # only for html output
+author: "Harikrishnan S Sreedeth"
+date: "`r Sys.Date()`"
+output:
+  tufte::tufte_html: default
+  tufte::tufte_handout:
+    citation_package: natbib
+    latex_engine: xelatex
+  tufte::tufte_book:
+    citation_package: natbib
+    latex_engine: xelatex
+bibliography: skeleton.bib
+link-citations: yes
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(rstatix) # Great package for simplified statistical testing
+library(tidyr)
+# invalidate cache when the tufte version changes
+knitr::opts_chunk$set(cache.extra = packageVersion('tufte'))
+options(htmltools.dir.version = FALSE)
+```
+
+# Introduction
+
+MAIP is an end-to-end ICU phenotyping pipeline I built using the SUPPORT-II cohort (~9,000 admissions)^[See Github repositories [Project-MAIP](https://github.com/hsreedeth/ProjectMAIP)].
+    The project disentangles chronic multimorbidity from acute physiology, learns data-driven clusters, and then
+    converts a surrogate decision tree into clinician-friendly rulecards using a small language model with
+    retrieval-augmented generation and programmatic quality checks.
+
+## Project overview
+
+MAIP started from the SUPPORT-II ICU cohort, a ~9,000-patient dataset^[The support dataset is a random sample of 1000 patients from Phases I & II of SUPPORT, [Study to Understand Prognoses Preferences Outcomes and Risks of Treatment](https://hbiostat.org/data/repo/supportdesc)] with rich information on comorbidities, physiology, interventions, and outcomes. My goal was to learn clinically meaningful ICU phenotypes that are anchored in chronic multimorbidity, but still capture acute severity and resource use, without leaking outcome information into the clustering.
+
+```{r cohort-characterstics, echo=FALSE}
+
+eda <- read.csv("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/characteristics_cohort.csv")
+
+eda %>%
+  # Use the kable() function from knitr
+  kable(
+    format = "latex", # Tufte is often based on LaTeX
+    booktabs = TRUE,
+    caption = "Key Insights for Multimorbidity and Mortality Clustering",
+    align = 'lccc' # or 'llll' # Adjust column widths, especially for Inference
+  ) %>%
+  # Use kable_styling to finalize the appearance
+  kable_styling(
+    latex_options = c("striped", "scale_down"), # Use striped for visual separation
+    position = "center",
+    font_size = 10 # Adjust font size if the table is too wide
+  )
+
+knitr::kable(
+  eda, caption = 'Table x: Variable Summary'
+)
+```
+
+To do this, I engineered three complementary feature views:  
+a chronic multimorbidity view (disease groups and comorbidity counts),  
+an acute physiology view (vital signs, laboratory values, oxygenation indices), and  
+a socio-contextual view (age, sex, income, DNR status).  
+All outcome variables (mortality, length of stay, cost) were held out until validation.
+
+On top of these views I implemented a dual phenotyping strategy:  
+
+- Multimorbidity-stratified phenotyping (MMSP), where I cluster patients separately within low, mid, and highmultimorbidity strata, and  
+- A simplified multiview similarity network fusion (“SNF-lite”) that fuses the three views into a shared patient-similarity graph and extracts clusters via spectral methods. This yields nine ICU phenotypes in total (three per multimorbidity band).
+
+## Technical approach
+
+For the multimorbidity-stratified arm, I first computed a multimorbidity index using a Delphi-based set of chronic disease groups. Patients were assigned to low, mid, or high bands based on the distribution of this index. Within each band, I performed unsupervised clustering on the combined chronic and acute physiology features, using distance metrics appropriate for mixed data and standard internal criteria to select the number of clusters.
+
+```{r fig-profiles, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Figure 2: Physiological and Comorbidity Profiles. Standardized median values (Z-scores) for key discriminators across the three clusters within each multimorbidity stratum.", warning=FALSE, message=FALSE, echo=FALSE}
+library(ggplot2)
+library(ggthemes) # For Tufte theme if available, otherwise use theme_classic
+
+# 1. Reconstruct the summary data (Z-scores)
+# This data matches your 'cluster_profiles_P_medians.csv'
+plot_data <- tibble::tribble(
+  ~stratum, ~label, ~aps, ~alb, ~pafi, ~age, ~temp,
+  'High_MM', '0', 0.673, 0.331, -0.200, 0.191, -0.083,
+  'High_MM', '1', -0.181, 0.465, 0.044, 0.182, -0.563,
+  'High_MM', '2', -0.382, 0.465, 0.677, 0.411, -0.563,
+  'Low_MM', '0', -0.985, 0.465, 0.677, 0.013, -0.407,
+  'Low_MM', '1', -0.131, 0.465, 0.031, 0.224, 0.155,
+  'Low_MM', '2', 0.221, 0.196, -0.325, -0.049, 0.317,
+  'Mid_MM', '0', -0.281, 0.465, -0.228, 0.618, -0.407,
+  'Mid_MM', '1', 0.472, -0.207, -0.073, -0.061, -0.164,
+  'Mid_MM', '2', -0.633, 0.465, 0.677, 0.169, -0.482
+)
+
+# 2. Reshape to Long Format for ggplot
+plot_data_long <- plot_data %>%
+  pivot_longer(cols = c(aps, alb, pafi, age, temp), 
+               names_to = "Variable", 
+               values_to = "Z_Score") %>%
+  # Clean up variable names for the legend
+  mutate(Variable = factor(Variable, 
+                           levels = c("aps", "pafi", "alb", "age", "temp"),
+                           labels = c("APS (Severity)", "PaO2/FiO2", "Albumin", "Age", "Temp")))
+
+# 3. Create the Plot
+ggplot(plot_data_long, aes(x = label, y = Z_Score, group = Variable, color = Variable)) +
+  # Lines and Points
+  geom_line(size = 1, alpha = 0.8) +
+  geom_point(size = 3) +
+  
+  # Facet by Stratum (Side-by-side)
+  facet_wrap(~stratum, nrow = 1) +
+  
+  # Tufte / Publication Style Theme
+  theme_classic(base_size = 12) +
+  theme(
+    strip.background = element_blank(),       # Remove box around facet title
+    strip.text = element_text(size = 12, face = "bold"),
+    legend.position = "bottom",               # Legend at bottom
+    panel.grid.major.y = element_line(color = "grey90"), # Light grid for readability
+    axis.line.y = element_blank(),            # Minimal y-axis
+    axis.ticks.y = element_blank()
+  ) +
+  
+  # Labels and Scales
+  labs(x = "Cluster ID", y = "Standardized Value (Z-Score)") +
+  scale_color_brewer(palette = "Dark2")       # High contrast color palette
+
+```
+
+In parallel, I implemented a **SNF-lite** pipeline. For each view, I built a patient–patient affinity matrix (Gower similarity for mixed features, RBF kernels for continuous physiology) and applied K-nearest-neighbour sparsification and row-normalisation. I then fused these view-specific graphs over a small number of iterations, following the core intuition of similarity network fusion, and performed spectral clustering on the final fused graph.
+
+```{r KM_curves, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Figure : Kaplan-Meier curves by multimorbidity stratum.", warning=FALSE, message=FALSE, echo=FALSE}
+
+# include in the document
+include_graphics("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/km_all_strata.png")
+```
+
+To make the resulting phenotypes explainable, I trained separate, depth-constrained **decision-tree surrogates** in each multimorbidity band to mimic the SNF-lite cluster assignments. Each surrogate was tuned for fidelity using cross-validated F1 and accuracy, and every root-to-leaf path was exported as a JSON rule containing the feature, operator, threshold, support, and purity. These JSON rules form the bridge between the black-box cluster assignments and the clinician-facing explanations.
+
+`r margin_note("Table X. Cross-validated fidelity of decision tree surrogates to SNF phenotypes, by multimorbidity stratum.")`
+
+| Stratum  | CV accuracy (mean ± SD) | Macro–F1 (mean ± SD) |
+|----------|-------------------------|-----------------------|
+| High MM  | 0.741 ± 0.027           | 0.744 ± 0.026         |
+| Mid MM   | 0.821 ± 0.004           | 0.797 ± 0.007         |
+| Low MM   | 0.900 ± 0.007           | 0.877 ± 0.013         |
+
+```{r ConfMatrices, fig.width = 10, fig.height = 4, fig.fullwidth = TRUE, fig.cap = "Figure : Confusion Matrices from surrogate models used in SNF clusters", warning=FALSE, message=FALSE, echo=FALSE}
+
+include_graphics("/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/cf_all_strata.png")
+```
+
+## From clusters to clinician-friendly rulecards
+
+A central problem in phenotyping is explainability: clusters are hard to communicate if they live only as numerical labels or heatmaps. To address this, I built a small **retrieval-augmented generation (RAG)** pipeline that translates surrogate-tree rules into human-readable rulecards and ASCII flowcharts.
+
+The RAG corpus is deliberately narrow and local. It contains:
+
+- A **variable dictionary** (canonical names, clinical descriptions, units, and expected risk directions).
+- Short **phenotype summaries** for each of the nine clusters (written from the data, not by the LLM).
+- A **style guide** describing how to phrase IF/THEN rules and when to attach units.
+
+For each phenotype, I identify the features used in its JSON rules, retrieve the relevant dictionary entries and phenotype summary, and assemble them into a prompt together with the JSON rule paths.
+
+The translation itself uses a small remote language model (`gpt-4.1-mini`, 8k context) accessed via API. The system prompt instructs the model to act as a deterministic translator: it may rewrite and format text, but it must not introduce new variables or thresholds, and every condition in the JSON must appear in an equivalent IF/THEN rule. For each phenotype, the model produces three sections: a short “Key idea”, a bullet-point rulecard, and an ASCII flowchart that mirrors the decision tree. An illustrative, schematic output might be:
+
+
+```{yaml}
+Phenotype P2 – "Hemodynamically unstable with limited chronic burden"
+
+Key idea: Patients with relatively few chronic conditions but marked acute physiologic derangement as reflected by elevated APS and impaired oxygenation.
+
+Rulecard:
+- IF comorbidity count < 2 AND APS > 18 THEN classify as Phenotype P2.
+- IF comorbidity count < 2 AND APS ≤ 18 AND PaO2/FiO2 < 200 THEN classify as Phenotype P2.
+- …
+
+ASCII flowchart (simplified):
+
+[Start]
+  |
+  |-- Is comorbidity count < 2? -- No --> [Other phenotypes]
+  | Yes
+  |
+  |-- Is APS > 18? -- Yes --> [P2]
+  | No
+  |
+  |-- Is PaO2/FiO2 < 200? -- Yes --> [P2]
+                        No --> [Other phenotypes]
+```
+
+
+
+## Quality control and reproducible pipeline
+
+The LLM output is not accepted blindly. I implemented a dedicated validation script that checks whether the textual rulecards faithfully represent the underlying JSON rules. For each phenotype and stratum, the script:
+
+- Compares the number of JSON leaves to the number of textual IF/THEN rules.
+- Verifies that every feature and threshold from the JSON appears in at least one IF/THEN line.
+- Checks that feature names in the text align with entries in the variable dictionary.
+
+As an additional sanity check, I can construct synthetic patient profiles that satisfy each JSON rule path and pass them through the fitted surrogate tree. The predicted label is then compared to the phenotype label in the rulecard. Any mismatches are flagged for inspection.
+
+All of this is wrapped in a simple command-line entry point. Running
+
+```yaml
+python -m src.cli build-rulecards
+```
+
+will, if needed, train the surrogate trees, export JSON rules, build RAG prompts, call the LLM to generate rulecards, and run the validation scripts, writing all artefacts to versioned report directories. This makes the entire rule-translation workflow re-runnable for supervisors, examiners, or future collaborators.
+
+## Key results
+
+Across the three multimorbidity strata (low, mid, high), the pipeline identifies **nine phenotypes** that line up with intuitive clinical patterns: solid-organ cancer with low acute severity, coma-dominant low multimorbidity, malignant multi-organ failure with cirrhosis, cardiovascular and lung-cancer phenotypes with preserved physiology, and high-multimorbidity phenotypes dominated by acute respiratory failure and multi-organ system failure.
+
+Within each stratum, these phenotypes show clear prognostic separation. In Cox models adjusted for age, deprivation, comorbidities and standard severity measures (including the Acute Physiology Score), clusters differ markedly in short-term mortality risk. Multi-organ failure phenotypes consistently occupy the highest-risk positions, while preserved-physiology phenotypes have lower hazards despite similar chronic disease burden.
+
+Phenotypes also correspond to distinct resource-use profiles: the highest-risk phenotypes exhibit longer ICU stays and higher hospital costs, whereas cancer-dominant but physiologically quiet phenotypes show shorter ICU episodes with mortality driven more by the underlying malignancy than by acute derangement. All nine rulecards and ASCII flowcharts are available as supplementary material and can be interpreted directly without referring back to the clustering code.
+
+`r margin_note("An output generated by RAG from surrogate model rules")`
+
+```yaml
+Phenotype High_MM_0 – Diabetic multi-organ failure
+
+Key idea:
+Patients in this phenotype tend to have high multimorbidity with multi-organ failure, often presenting with acute respiratory failure or multiple organ system failure, and exhibit severe acute physiology abnormalities and organ support needs.
+
+Rulecard:
+- IF primary diagnosis is NOT acute respiratory failure or multiple organ system failure (dzgroup_arf_mosf ≤ 0.5) AND primary diagnosis is NOT congestive heart failure (dzgroup_chf ≤ 0.5) AND no DNR order (dnr_no_dnr ≤ 0.5) AND household income bracket is greater than 1.5 THEN phenotype is High_MM_0.
+- IF primary diagnosis is acute respiratory failure or multiple organ system failure (dzgroup_arf_mosf > 0.5) AND APACHE-III acute physiology score (aps) ≤ 0.6482 AND coma score (scoma) ≤ 0.2209 AND no DNR order (dnr_no_dnr ≤ 0.5) THEN phenotype is High_MM_0.
+- IF primary diagnosis is acute respiratory failure or multiple organ system failure (dzgroup_arf_mosf > 0.5) AND APACHE-III acute physiology score (aps) ≤ 0.6482 AND coma score (scoma) > 0.2209 THEN phenotype is High_MM_0.
+- IF primary diagnosis is acute respiratory failure or multiple organ system failure (dzgroup_arf_mosf > 0.5) AND APACHE-III acute physiology score (aps) > 0.6482 AND serum albumin (alb) ≤ -0.6107 AND serum bilirubin (bili) ≤ -0.1997 THEN phenotype is High_MM_0.
+- IF primary diagnosis is acute respiratory failure or multiple organ system failure (dzgroup_arf_mosf > 0.5) AND APACHE-III acute physiology score (aps) > 0.6482 AND serum albumin (alb) ≤ -0.6107 AND serum bilirubin (bili) > -0.1997 THEN phenotype is High_MM_0.
+- IF primary diagnosis is acute respiratory failure or multiple organ system failure (dzgroup_arf_mosf > 0.5) AND APACHE-III acute physiology score (aps) > 0.6482 AND serum albumin (alb) > -0.6107 THEN phenotype is High_MM_0.
+
+ASCII flowchart:
+[Start]
+  |
+  |-- dzgroup_arf_mosf ≤ 0.5?
+  |     |
+  |     |-- dzgroup_chf ≤ 0.5?
+  |           |
+  |           |-- dnr_no_dnr ≤ 0.5?
+  |                 |
+  |                 |-- income > 1.5 --> High_MM_0
+  |
+  |-- dzgroup_arf_mosf > 0.5?
+        |
+        |-- aps ≤ 0.6482?
+        |     |
+        |     |-- scoma ≤ 0.2209?
+        |     |     |
+        |     |     |-- dnr_no_dnr ≤ 0.5 --> High_MM_0
+        |     |
+        |     |-- scoma > 0.2209 --> High_MM_0
+        |
+        |-- aps > 0.6482?
+              |
+              |-- alb ≤ -0.6107?
+              |     |
+              |     |-- bili ≤ -0.1997 --> High_MM_0
+              |     |
+              |     |-- bili > -0.1997 --> High_MM_0
+              |
+              |-- alb > -0.6107 --> High_MM_0
+```
+
+## My role and skills demonstrated
+
+MAIP is a project I designed and implemented end-to-end as part of my MSc in Health Data Science. Key aspects of my contribution include:
+
+* **Data engineering:** cleaning and harmonising the SUPPORT-II dataset, designing multimorbidity and physiology feature views, and ensuring outcome variables were held out from the clustering steps.
+* **Unsupervised learning:** implementing multimorbidity-stratified clustering and SNF-lite graph fusion, choosing the number of clusters, and validating phenotypes using survival models and resource-use outcomes.
+* **Model explainability:** training depth-constrained decision-tree surrogates, exporting JSON rules, and building a RAG + LLM pipeline to translate rules into readable rulecards with formal QC.
+* **Reproducible research:** organising the work into a structured repository with `src.cli` entry points, versioned artefacts under `reports/`, and clear separation of data preparation, clustering, surrogate modelling, and LLM translation.
+
+
