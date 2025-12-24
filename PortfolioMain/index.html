@@ -7,6 +7,15 @@
   <meta charset="UTF-8" />
   <title>Project MAIP – Portfolio by Hari S. Sreedeth</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- MathJax for LaTeX rendering -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)'], ['$', '$']], displayMath: [['\\[','\\]'], ['$$','$$']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
 
   <style>
     :root {
@@ -663,6 +672,76 @@
         font-size: 32px;
       }
     }
+
+        /* Code snippet blocks (lightweight, GitHub-ish) */
+    .code-block {
+      border: 1px solid #e6e8ee;
+      border-radius: 12px;
+      background: #fbfcfe;
+      overflow: hidden;
+      margin: 12px 0 18px;
+    }
+
+    .code-block .code-titlebar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #eef1f6;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .code-block .code-titlebar .label {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    .code-block pre {
+      margin: 0;
+      padding: 14px 16px;
+      overflow: auto;
+      line-height: 1.55;
+      font-size: 13px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      color: #111827;
+    }
+
+    .code-block code { white-space: pre; }
+
+    /* Minimal token colors for JSON/Python-ish snippets (works without JS libs) */
+    .code-block .tok-key { color: #b91c1c; }      /* red */
+    .code-block .tok-str { color: #1d4ed8; }      /* blue */
+    .code-block .tok-num { color: #7c3aed; }      /* purple */
+    .code-block .tok-bool { color: #0f766e; }     /* teal */
+    .code-block .tok-kw { color: #b45309; }       /* amber */
+    .code-block .tok-fn { color: #6d28d9; }       /* indigo */
+    .code-block .tok-cmpr { color: #374151; }     /* gray */
+
+      /* Show full code block (no vertical scroll) */
+  .code-block pre {
+    max-height: none !important;
+    height: auto !important;
+
+    /* Only horizontal scroll if a long line exists */
+    overflow-x: auto;
+    overflow-y: visible;
+
+    /* Let the pre expand to fit all lines */
+    white-space: pre;            /* keep formatting */
+  }
+
+  /* Optional: wrap long lines instead of horizontal scrolling */
+  .code-block.pre-wrap pre {
+    white-space: pre-wrap;       /* preserves indentation but wraps */
+    overflow-x: hidden;
+  }
+
+  /* If you’re using <code> styles that force nowrap, neutralize them */
+  .code-block pre code {
+    white-space: inherit;
+  }
+
   </style>
 </head>
 <body>
@@ -1155,42 +1234,52 @@
       (e.g., income limited to 1–4; edu limited to 0–31; binary indicators coerced to {0,1}).
     </p>
   </div>
-<h3 class="section-heading">Phenotyping Strategy</h3>
+
+<h3 class="section-heading">Phenotyping strategy: multimorbidity-stratified baseline (MMSP) and multi-view fusion (SNF-lite)</h3>
   <section class="intro-grid" aria-labelledby="intro">
     <div>
       <div class="section-lead">
         <p>
-            Two complementary unsupervised pathways: one conditions on multimorbidity and 
-            looks for physiology-driven patterns; the other fuses comorbidity, physiology 
-            and context into a single set of ICU phenotypes.
+          Phenotyping was implemented as two within-stratum unsupervised pipelines, each applied separately to 
+          the same multimorbidity strata and using only the feature matrix X (no outcomes). Multimorbidity 
+          strata were defined from the comorbidity count (num.co) using fixed cut-points: 
+          Low_MM (0–1), Mid_MM (2–3), and High_MM (≥4), implemented as bins [0,2), [2,4), [4,∞). 
+          Within each stratum, the pipelines produced candidate cluster assignments and a shared set of 
+          internal selection metrics (bootstrap stability and separation indices) used for model comparison.
         </p>
       </div>
       <div class="intro-text">
-        <p><strong>MMSP: Physiology within Burden Strata</strong></p>
+        <p><strong>MMSP (baseline): physiology-only clustering within multimorbidity strata</strong></p>
         <p>
-            Patients are first split into Low, Mid and High multimorbidity strata using 
-            the comorbidity count. Within each stratum I cluster only on the z-scaled 
-            physiology view (vitals, labs, severity scores). PCA reduces this to a 
-            low-dimensional acute-state space, Euclidean distances are computed, and 
-            PAM (k-medoids) is used to derive clusters. Candidate K values are compared 
-            using bootstrap stability (Adjusted Rand Index) and internal indices, then 
-            reviewed for clinical interpretability. The result is a set of 
-            physiology-driven phenotypes defined separately within each level of 
-            multimorbidity.
+        The MMSP baseline clusters acute physiology features only within each multimorbidity stratum, using 
+        the pre-scaled physiology matrix (P_view_scaled.csv). For a given stratum, near-constant physiology 
+        columns (within-stratum standard deviation ≤1e-8) were dropped to avoid degenerate PCA components. 
+        Dimensionality reduction was then performed with PCA (not FAMD): the number of components was chosen 
+        to retain approximately 80% cumulative explained variance, with a minimum of 2 components where 
+        feasible and never exceeding the number of retained physiology features.
         </p>
 
           <img
             src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/PortfolioMain/MMSP.svg"
             alt="Cluster Sizes"
             style="display:block; margin-left:auto; max-width:200%; height:auto;"
-          >       
-          <p>Figure 1: Multimorbidity-Stratified Phenotyping (MMSP) workflow.</p>
-
+          >
         <div class="sidenote" id="sn3">
-            <span class="sidenote-number">Figure 1</span>
+            <span class="sidenote-number">MMSP Workflow</span>
             Multimorbidity-Stratified Phenotyping (MMSP) workflow.
             Patients are first partitioned into low, mid and high multimorbidity strata by comorbidity count. Within each stratum, the day-3 physiology view (vitals, labs and severity scores) is reduced with PCA, Euclidean distances are computed, and PAM (k-medoids) clustering is applied to yield separate high-, mid- and low-burden ICU phenotypes.
         </div>
+        <p>
+          Clustering was performed on the PCA embedding using PAM k-medoids on Euclidean distances computed 
+          in the PCA space. Candidate numbers of clusters were evaluated over K = 2…8. For each K, clustering 
+          stability was estimated using bootstrap subsampling (fraction 0.80, B=100) and Adjusted Rand Index 
+          (ARI) computed across pairs of bootstrap runs on the overlap of sampled individuals. Internal 
+          separation metrics (silhouette, Calinski–Harabasz, Davies–Bouldin) were computed from a 
+          representative fit at each K. Final K selection used a stability-first rule: retain K values within 
+          20% of the best stability, then select the best among those by highest silhouette, then highest 
+          Calinski–Harabasz, then lowest Davies–Bouldin. The final MMSP partition for the chosen K was 
+          obtained using best-of-20 restarts to reduce sensitivity to initialization.
+        </p>
 
           <!-- <p class = "section-lead">
             Multimorbidity-Stratified Phenotyping (MMSP) workflow.
@@ -1289,25 +1378,57 @@
   </section>
 
 <div class="sidenote" id="sn4">
-  <span class="sidenote-number">Figure 2</span>
-  MMSP cluster profiles by multimorbidity stratum. For each low, mid and high
+  <span class="sidenote-number">MMSP cluster profiles by multimorbidity stratum</span>
+  For each low, mid and high
   multimorbidity group, the heatmaps display z-scored cluster averages of
   selected comorbidities and age/APS, highlighting relative enrichment and
   depletion across MMSP phenotypes.
 </div>
 
             <div class="intro-text">
-        <p><strong>SNF-lite: Multi-View Fusion Phenotypes</strong></p>
+        <p><strong>SNF-lite: multi-view similarity fusion within multimorbidity strata</strong></p>
         <p>
-            In parallel, I build a multi-view similarity network using all three views: 
-            comorbidity (C), physiology (P) and socio-contextual features (S). For C and 
-            S I compute Gower similarities; for the scaled P view I use an RBF kernel. 
-            A lightweight Similarity Network Fusion routine iteratively combines these 
-            into a single fused affinity matrix that emphasises similarities supported 
-            by multiple views. Spectral clustering on this fused graph yields a global 
-            set of ICU phenotypes. K is chosen using the eigengap heuristic plus the 
-            same stability and internal metrics as MMSP, and competing solutions are 
-            compared on prognostic performance and clinical interpretability.
+        SNF-lite integrates three feature views—comorbidity (C_view.csv), physiology (P_view.csv), and 
+        socio-contextual (S_view.csv)—within each multimorbidity stratum. Prior to similarity construction, 
+        low-signal variables in the comorbidity and socio-contextual views were removed: constants were 
+        dropped, and binary indicators with extreme prevalence (p<0.005 or p>0.995) were excluded. 
+        A safeguard check prevents a set of known outcome fields (e.g., death, hospdead, d.time, slos, 
+        totmcst) from being present in the C/S views used for fusion.
+        </p>
+        <p>
+        View-specific patient affinities were then constructed as follows. For comorbidity and socio-contextual 
+        views, a Gower-like similarity was computed using: (i) min–max scaling for numeric columns followed by 
+        average Manhattan distance, (ii) simple mismatch distance for multi-level categoricals, and (iii) an 
+        asymmetric binary treatment for {0,1} indicators using a Jaccard-style distance that ignores 0–0 matches, 
+        optionally weighted by prevalence (approximately p(1−p)) to down-weight extremely rare/common flags. 
+        For the physiology view, an RBF affinity was computed after standardization; the kernel used a local 
+        scaling parameter per individual based on the 7th nearest-neighbour distance (k_local=7) to reduce 
+        sensitivity to absolute scale differences across patients.
+        </p>
+        <p>
+        Fusion used a lightweight SNF routine. Each view affinity was KNN-masked to its top k=25 neighbours 
+        (include self), row-normalized to a row-stochastic matrix (diagonal set to 0), and iteratively updated 
+        for 10 iterations with mixing parameter α=0.5:
+        </p>
+        <br>
+        <p>
+          \[
+          P_v \leftarrow \alpha\,P^{\mathrm{KNN}}_v + (1-\alpha)\,\frac{1}{V-1}\sum_{u \ne v} P_u
+          \]
+        </p>
+        <br>
+        <p>
+        followed by row-normalization. The final fused affinity was the mean across views and was symmetrized.
+
+        <br>
+        <p>Clustering and K selection were performed on the fused affinity via spectral embedding followed by 
+          PAM k-medoids on Euclidean distances in the embedding space. Candidate K values were evaluated over 
+          K = 2…8, with the same bootstrap ARI stability procedure (B=100, subsample 0.80) and the same 
+          internal separation metrics. The same stability-first selection rule (20% tolerance from best 
+          stability; then silhouette/CH/DB tie-breaks) was applied. In addition, an eigengap diagnostic was 
+          computed from a KNN-sparsified normalized Laplacian (KNN=25) and recorded as a transparency aid. 
+          when the eigengap-suggested K achieved a silhouette within 95% of the selected K’s silhouette, 
+          the pipeline permitted preferring the eigengap K and refitting labels at that K (as implemented).</p>
         </p>
 
         <img
@@ -1315,11 +1436,10 @@
             alt="SNF-Lite"
             style="display:block; margin-left:auto; max-width:200%; height:auto;"
           >       
-          <p>Figure 2: Similarity Fusion Network-Lite (SNF-Lite) workflow.</p>
 
         <div class="sidenote" id="sn4">
-            <span class="sidenote-number">Figure 2</span>
-            SNF-lite workflow: multimorbidity strata feed C, P and S views into a lightweight similarity network fusion step, which produces a fused affinity matrix and spectral-clustering–derived phenotypes across low, mid and high burden groups.
+            <span class="sidenote-number">SNF-lite workflow</span>
+            Multimorbidity strata feed C, P and S views into a lightweight similarity network fusion step, which produces a fused affinity matrix and spectral-clustering–derived phenotypes across low, mid and high burden groups.
         </div>
       </div>
     <div>
@@ -1368,8 +1488,8 @@
 </section>
 
 <div class="sidenote" id="sn5">
-  <span class="sidenote-number">Figure 3</span>
-  SNF-lite patient similarity networks by multimorbidity stratum. Each panel
+  <span class="sidenote-number">SNF-lite patient similarity networks by multimorbidity stratum.</span>
+  Each panel
   shows the k-nearest-neighbour graph constructed from the fused multi-view
   similarity matrix; nodes are ICU admissions and edges represent strong
   pairwise similarities. Node colours denote SNF-lite clusters, which form
@@ -2257,6 +2377,188 @@
     Fig C. Adjusted hazard ratios for Low Multimorbidity stratum.
   </figcaption>
 </figure>
+
+<h3 class="section-heading">Surrogate trees and LLM-derived rulecards</h3>
+<p class="section-lead">
+  To translate SNF-lite phenotypes into compact, auditable decision logic, we fit constrained
+  decision-tree surrogates to approximate phenotype assignments and then convert the extracted
+  rule paths into clinician-facing rulecards using a controlled remote LLM pipeline with
+  programmatic validation.
+</p>
+
+<section class="intro-grid" aria-labelledby="surrogate-rulecards">
+  <div class="intro-text">
+    <p><strong>Surrogate decision trees (per stratum)</strong></p>
+    <p>
+      Within each multimorbidity stratum (High_MM, Mid_MM, Low_MM), a separate decision tree
+      classifier was trained to approximate the SNF-lite phenotype label for that stratum.
+      The feature set matched the harmonised baseline variables used in phenotyping. Tree
+      complexity was constrained (depth and leaf-size limits) and selected by cross-validation
+      to balance fidelity and interpretability. Surrogate fidelity was summarised using
+      accuracy and macro-averaged F1.
+    </p>
+
+    <p><strong>Rule extraction and canonical JSON rulesets</strong></p>
+    <p>
+      The fitted tree structure was exported into a structured JSON ruleset. Each leaf path
+      corresponds to one rule defined by an ordered conjunction of feature–operator–threshold
+      conditions and an associated phenotype label. The JSON ruleset is treated as the
+      canonical source of truth for downstream translation and QC.
+    </p>
+
+    <p><strong>Canonical rulecard output format (fixed headings)</strong></p>
+    <ul class="section-lead" style="margin-top: 6px;">
+      <li><code>Phenotype &lt;label&gt; – &lt;short title&gt;</code></li>
+      <li><code>Key idea:</code> – one or two sentences summarising the typical patient</li>
+      <li><code>Rulecard:</code> – a bullet list of explicit IF/THEN rules</li>
+      <li><code>ASCII flowchart:</code> – a simple text flowchart mirroring the same branch</li>
+    </ul>
+
+
+    <!-- <p><strong>Rule extraction (canonical JSON ruleset)</strong></p> -->
+    <p class = "section-lead">
+      The JSON representation records, for each rule, the feature names, comparison operators,
+      threshold values, and the resulting phenotype label. A schematic example is:
+    </p>
+
+    <div class="code-block" aria-label="JSON ruleset schematic example">
+      <div class="code-titlebar">
+        <span class="label">rule_ruleset.json (schematic)</span>
+        <span>JSON</span>
+      </div>
+      <pre><code>{
+      <span class="tok-key">"ruleset_id"</span>: <span class="tok-str">"maip_v1"</span>,
+      <span class="tok-key">"phenotypes"</span>: [<span class="tok-str">"P1"</span>, <span class="tok-str">"P2"</span>, <span class="tok-str">"P3"</span>, <span class="tok-str">"P4"</span>],
+      <span class="tok-key">"rules"</span>: [
+        {
+          <span class="tok-key">"id"</span>: <span class="tok-str">"R1"</span>,
+          <span class="tok-key">"if"</span>: [
+            {<span class="tok-key">"feature"</span>: <span class="tok-str">"num_co"</span>, <span class="tok-key">"op"</span>: <span class="tok-str">"&lt;"</span>, <span class="tok-key">"value"</span>: <span class="tok-num">2</span>},
+            {<span class="tok-key">"feature"</span>: <span class="tok-str">"aps"</span>, <span class="tok-key">"op"</span>: <span class="tok-str">"&gt;"</span>, <span class="tok-key">"value"</span>: <span class="tok-num">18</span>}
+          ],
+          <span class="tok-key">"then"</span>: {<span class="tok-key">"phenotype"</span>: <span class="tok-str">"P2"</span>}
+        }
+      ]
+    }</code></pre>
+    </div>
+
+<p class="section-lead" style="margin-top: 8px;">
+  This structured representation becomes the canonical source of truth for the rule logic used in the
+  subsequent LLM translation phase.
+</p>
+
+
+    <p><strong>LLM translation into rulecards (remote API)</strong></p>
+    <p>
+      For each phenotype label, a prompt was assembled by concatenating: (i) the phenotype’s
+      JSON rule paths, (ii) a phenotype summary (curated from analytic outputs), (iii) a
+      phenotype-specific subset of the variable dictionary for features appearing in those
+      rules, and (iv) a style guide that fixes phrasing and output structure. A remote chat
+      model (GPT-4.1-mini via API) was then used as a controlled re-writer to produce a
+      canonical markdown rulecard with three fixed sections: <em>Key idea</em>, <em>Rulecard</em>,
+      and <em>ASCII flowchart</em>. Generation was run at low temperature to reduce variability.
+    </p>
+
+    <p><strong>Programmatic quality control</strong></p>
+    <p>
+      Generated rulecards were validated against the JSON rulesets and variable dictionary.
+      QC checks included: (i) rule coverage (each JSON condition must appear in at least one
+      textual “IF …” line, including threshold values), (ii) feature-name alignment against
+      canonical dictionary keys, and (iii) an optional synthetic-profile sanity check that
+      confirms exported rule paths behave consistently with the fitted surrogate tree.
+    </p>
+    <p class="section-lead">
+      Example of the QC pass that validates coverage of JSON conditions in the generated markdown rulecard.
+    </p>
+
+    <div class="code-block" aria-label="Programmatic checks snippet">
+      <div class="code-titlebar">
+        <span class="label">rulecard_validate.py (excerpt)</span>
+        <span>Python</span>
+      </div>
+      <pre><code><span class="tok-kw">def</span> <span class="tok-fn">validate_rule_coverage</span>(json_rules, rulecard_text):
+        <span class="tok-cmpr"># Extract “- IF …” lines and verify each JSON condition is represented.</span>
+        if_lines = [ln for ln in rulecard_text.splitlines() if ln.lstrip().startswith(<span class="tok-str">"- IF"</span>)]
+
+        <span class="tok-kw">for</span> rule <span class="tok-kw">in</span> json_rules:
+            <span class="tok-kw">for</span> cond <span class="tok-kw">in</span> rule[<span class="tok-str">"if"</span>]:
+                feat = cond[<span class="tok-str">"feature"</span>]
+                val  = str(cond[<span class="tok-str">"value"</span>])
+                ok = any((feat in ln) and (val in ln) for ln in if_lines)
+                <span class="tok-kw">if</span> <span class="tok-kw">not</span> ok:
+                    <span class="tok-kw">return</span> <span class="tok-bool">False</span>, (feat, val)
+
+        <span class="tok-kw">return</span> <span class="tok-bool">True</span>, <span class="tok-kw">None</span></code></pre>
+    </div>
+
+  </div>
+</section>
+
+<h4 class="section-heading" style="font-size: 18px; margin-top: 22px;">Surrogate fidelity (cross-validated)</h4>
+<p class="section-lead">
+  Cross-validated fidelity of decision-tree surrogates to SNF-lite phenotypes, by multimorbidity stratum.
+  Values are mean&nbsp;&plusmn;&nbsp;SD.
+</p>
+
+<table class="phase-table" aria-label="Surrogate fidelity table">
+  <thead>
+    <tr>
+      <th>Stratum</th>
+      <th>CV accuracy</th>
+      <th>Macro–F1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>High MM</td>
+      <td>0.741&nbsp;&plusmn;&nbsp;0.027</td>
+      <td>0.744&nbsp;&plusmn;&nbsp;0.026</td>
+    </tr>
+    <tr>
+      <td>Mid MM</td>
+      <td>0.821&nbsp;&plusmn;&nbsp;0.004</td>
+      <td>0.797&nbsp;&plusmn;&nbsp;0.007</td>
+    </tr>
+    <tr>
+      <td>Low MM</td>
+      <td>0.900&nbsp;&plusmn;&nbsp;0.007</td>
+      <td>0.877&nbsp;&plusmn;&nbsp;0.013</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="intro-text" style="margin-top: 14px;">
+  <p>
+    Surrogate fidelity was highest in the low-multimorbidity stratum and lowest in the high-multimorbidity
+    stratum, consistent with greater heterogeneity in high multimorbidity. Across strata, extracted rule
+    sets typically required multiple leaf paths to cover physiologically diverse phenotypes, while more
+    specific phenotypes could be represented by fewer rules.
+  </p>
+</div>
+
+<figure style="margin-top: 18px;">
+  <img
+    src="/Users/harisreedeth/Desktop/D/personal/ProjectMAIP/reports/figures/cf_all_strata.png"
+    alt="Confusion matrices for surrogate decision trees by multimorbidity stratum"
+    style="width:100%; height:auto; border-radius:12px;"
+  />
+  <figcaption class="section-lead" style="margin-top: 8px;">
+    <strong>Figure:</strong> Confusion matrices for decision-tree surrogates predicting SNF-lite phenotype labels
+    in each multimorbidity stratum.
+  </figcaption>
+</figure>
+
+<div class="intro-text" style="margin-top: 14px;">
+  <p><strong>Rulecard outputs and QC status</strong></p>
+  <p>
+    The pipeline produced one canonical markdown rulecard per phenotype (three phenotypes per stratum),
+    each containing a short “Key idea” summary, explicit IF/THEN rules that mirror the JSON conditions,
+    and an ASCII flowchart representing the same decision structure. Programmatic validation reports
+    summarised rule coverage and dictionary alignment for each phenotype and flagged any missing
+    feature–threshold mappings for manual correction.
+  </p>
+</div>
+
 
 <h3 class="section-heading">Supplementary: Secondary Outcomes - Resource Utilization</h3>
 
