@@ -1,51 +1,371 @@
-maip-support-phenotyping/
-├── .gitignore             # Specifies intentionally untracked files to ignore
-├── README.md              # High-level project overview, setup, and usage instructions
-├── LICENSE                # Project software license (e.g., MIT)
-├── requirements.txt         # Python package dependencies for pip
-├── environment.yml        # Conda environment dependencies
-│
+ProjectMAIP/
+├── .gitignore
+├── README.md
+├── check_variable_dictionary.py
+├── directorymap.txt
+├── makefile
+├── note_offload.txt
+├── requirements.txt
+├── support_schema.yml
+├── Manuscript/
+│   ├── Manuscript.Rmd
+│   ├── Manuscript.html
+│   ├── Manuscript.log
+│   ├── Manuscript.pdf
+│   ├── Manuscript.tex
+│   ├── Manuscript_files/
+│   │   └── figure-html/
+│   ├── archive/
+│   │   ├── Manuscript.pdf
+│   │   ├── ManuscriptBackup.html
+│   │   └── ManusriptDraft.html
+│   ├── asPortfolio_Section_cache/
+│   │   └── html/
+│   ├── asPortfolio_Section_files/
+│   │   └── figure-html/
+│   └── skeleton.bib
+├── PrimaryOutcomesCodebook/
+│   ├── TechnicalDocumentation.Rmd
+│   ├── TechnicalDocumentation.html
+│   ├── TechnicalDocumentation_cache/
+│   │   └── html/
+│   ├── TechnicalDocumentation_files/
+│   │   └── figure-html/
+│   ├── archive_cox/
+│   │   └── Rscripts_tests/
+│   ├── forest_High_MM.svg
+│   ├── forest_Low_MM.svg
+│   ├── forest_Mid_MM.svg
+│   └── skeleton.bib
+├── archive_llm/
+│   ├── download_llm_transformers.py
+│   ├── llm_fallback.py
+│   ├── llm_prompt.py
+│   ├── llm_validate.py
+│   └── llama-cpp-python/
+│       ├── CHANGELOG.md
+│       ├── CMakeLists.txt
+│       ├── LICENSE.md
+│       ├── Makefile
+│       ├── README.md
+│       ├── docker/
+│       ├── docs/
+│       ├── examples/
+│       ├── llama_cpp/
+│       ├── mkdocs.yml
+│       ├── pyproject.toml
+│       ├── scripts/
+│       ├── tests/
+│       └── vendor/
+├── cli_comms/
+│   └── surrogate_tree.txt
+├── cloned/
+│   ├── ProjectMAIP/
+│   │   ├── README.md
+│   │   ├── data/
+│   │   ├── directorymap.txt
+│   │   ├── models/
+│   │   ├── notebooks/
+│   │   ├── reports/
+│   │   ├── requirements.txt
+│   │   ├── src/
+│   │   └── support_schema.yml
+│   ├── llm_prompt.py
+│   └── src_backup/
+│       ├── __init__.py
+│       ├── __pycache__/
+│       ├── check_clusters.py
+│       ├── clean_data.py
+│       ├── cli.py
+│       ├── cli_rulecard.py
+│       ├── consolidate_snf_winners.py
+│       ├── decision_archive.py
+│       ├── eda_report.py
+│       ├── external_validation.py
+│       ├── fix_y_val.py
+│       ├── flowchart_fallback.py
+│       ├── llm_fallback.py
+│       ├── llm_prompt.py
+│       ├── llm_validate.py
+│       ├── make_views.py
+│       ├── model_selection.py
+│       ├── normalize_rules.py
+│       ├── rag_translate_rules.py
+│       ├── rules_schema.py
+│       ├── run_mmsp_phase1_pam.py
+│       ├── run_qc.py
+│       ├── snf_lite.py
+│       ├── snf_lite_backup30112025.py
+│       ├── snf_sensitivity.py
+│       ├── surrogate_tree.py
+│       └── retired/
+│           ├── create_final_view.py
+│           ├── run_mmsp.py
+│           └── support_preprocessed_clean.csv
 ├── data/
-│   ├── 00_raw/            # Immutable raw data
+│   ├── 00_raw/
 │   │   └── support2.csv
-│   └── 01_processed/      # Cleaned, imputed, and processed data
-│       ├── support_imputed.csv
-│       ├── C_view.csv
-│       ├── P_view.csv
-│       └── S_view.csv
-│
-├── notebooks/             # Jupyter notebooks for exploration and experimentation (EDA)
-│   ├── 01_eda_and_preprocessing.ipynb
-│   └── 02_clustering_experiments.ipynb
-│
-├── src/                   # Source code for the main analysis pipeline
+│   ├── 01_processed/
+│   │   ├── C_view.csv
+│   │   ├── P_view_scaled.csv
+│   │   ├── S_view.csv
+│   │   ├── Y_validation.csv
+│   │   ├── imputer_X.joblib
+│   │   ├── scaler_P.joblib
+│   │   ├── support_preprocessed.csv
+│   │   └── support_preprocessed_clean.csv
+│   └── 02_clusters/
+│       ├── metrics_High_MM.json
+│       ├── metrics_High_MM_K5.json
+│       ├── metrics_High_MM_K6.json
+│       ├── metrics_Low_MM.json
+│       ├── metrics_Mid_MM.json
+│       ├── mmsp_High_MM_assign.csv
+│       ├── mmsp_Low_MM_assign.csv
+│       ├── mmsp_Mid_MM_assign.csv
+│       ├── mmsp_clusters.csv
+│       ├── mmsp_clusters_High_MM_K5.csv
+│       ├── mmsp_clusters_High_MM_K6.csv
+│       ├── mmsp_snf_clusters.csv
+│       ├── pca_biplot_2d_High_MM.png
+│       ├── pca_biplot_2d_Low_MM.png
+│       ├── pca_biplot_2d_Mid_MM.png
+│       ├── pca_biplot_3d_High_MM.png
+│       ├── pca_biplot_3d_Low_MM.png
+│       ├── pca_biplot_3d_Mid_MM.png
+│       ├── pca_biplot_High_MM.png
+│       ├── pca_biplot_Low_MM.png
+│       ├── pca_biplot_Mid_MM.png
+│       ├── snf_clusters_all.csv
+│       └── summary.json
+├── docs/
+│   ├── Cluster Sizes.png
+│   ├── Cluster Sizes.svg
+│   ├── KM_curves-1.png
+│   ├── KM_curves-2.png
+│   ├── KM_curves-3.png
+│   ├── MMSP.svg
+│   ├── MainRepoCover.jpg
+│   ├── Overview Schematic.svg
+│   ├── Project MAIP_ Scalable Approximate Similarity Fusion (SASF) clusters.svg
+│   ├── SNF-Lite.svg
+│   ├── ViewConstruction.png
+│   ├── ViewConstructionF.svg
+│   ├── cf_all_strata.png
+│   ├── deltaC.png
+│   ├── heatmap_mmsp_High_MM.png
+│   ├── heatmap_mmsp_Low_MM.png
+│   ├── heatmap_mmsp_Mid_MM.png
+│   ├── heatmap_snf_High_MM.png
+│   ├── heatmap_snf_Low_MM.png
+│   ├── heatmap_snf_Mid_MM.png
+│   ├── index.html
+│   ├── km_all_strata.png
+│   ├── pca_biplot_2d_High_MM.png
+│   ├── pca_biplot_2d_Low_MM.png
+│   ├── pca_biplot_2d_Mid_MM.png
+│   ├── sankey_High_MM.png
+│   ├── sankey_Low_MM.png
+│   ├── sankey_Mid_MM.png
+│   ├── sankey_concordance.png
+│   ├── snf_network_High_MM.png
+│   ├── snf_network_Low_MM.png
+│   └── snf_network_Mid_MM.png
+├── models/
+│   ├── Meta-Llama-3-8B-Instruct/
+│   ├── Qwen2.5-7B-Instruct-Q4_K_M.gguf
+│   ├── TinyLlama-1.1B-Chat-v1.0/
+│   ├── imputer_X.joblib
+│   ├── mmsp_snf_clusters.csv
+│   ├── qwen2_5-7b-instruct-q4_k_m.gguf
+│   ├── scaler_P.joblib
+│   ├── snf_clusters_K3.csv
+│   ├── snf_clusters_K4.csv
+│   ├── snf_clusters_K5.csv
+│   ├── snf_fused.npy
+│   ├── snf_high/
+│   ├── snf_low/
+│   └── snf_mid/
+├── notebooks/
+│   ├── 01_EDA.ipynb
+│   ├── 02_Preprocessing.ipynb
+│   ├── EDA_act.ipynb
+│   ├── bootscopealpha.ipynb
+│   ├── dated/
+│   │   ├── final_Impute.ipynb
+│   │   └── multipleimputation.ipynb
+│   ├── model_selection_notes.ipynb
+│   ├── reports/
+│   │   ├── boot_ari_all_snf_pam.csv
+│   │   ├── mmsp_Dtree/
+│   │   │   └── surrogate_high/
+│   │   ├── ukb_lca_K_stability.gif
+│   │   ├── ukb_lca_K_stability_v2.gif
+│   │   └── ukb_snf_lca_stability.gif
+│   ├── snfApp_helper_note.ipynb
+│   ├── snf_fused_test.npy
+│   └── visualizations.ipynb
+├── rag_corpus/
+│   ├── phenotype_High_MM_0.md
+│   ├── phenotype_High_MM_1.md
+│   ├── phenotype_High_MM_2.md
+│   ├── phenotype_Low_MM_0.md
+│   ├── phenotype_Low_MM_1.md
+│   ├── phenotype_Low_MM_2.md
+│   ├── phenotype_Mid_MM_0.md
+│   ├── phenotype_Mid_MM_1.md
+│   ├── phenotype_Mid_MM_2.md
+│   ├── style_guide.md
+│   └── variable_dictionary.json
+├── reports/
+│   ├── characteristics_cohort.csv
+│   ├── characteristics_cohort.xlsx
+│   ├── data_descriptions.csv
+│   ├── early_summary.csv
+│   ├── eda.csv
+│   ├── figures/
+│   │   ├── cf_all_strata.png
+│   │   ├── cox_zph_High_MM.png
+│   │   ├── heatmap_mmsp_High_MM.png
+│   │   ├── heatmap_mmsp_Low_MM.png
+│   │   ├── heatmap_mmsp_Mid_MM.png
+│   │   ├── heatmap_snf_High_MM.png
+│   │   ├── heatmap_snf_Low_MM.png
+│   │   ├── heatmap_snf_Mid_MM.png
+│   │   ├── km_High_MM.png
+│   │   ├── km_Low_MM.png
+│   │   ├── km_Mid_MM.png
+│   │   ├── km_all_strata.png
+│   │   ├── qc/
+│   │   │   ├── adlp_s_qc_plot.png
+│   │   │   ├── age_qc_plot.png
+│   │   │   ├── alb_qc_plot.png
+│   │   │   ├── aps_qc_plot.png
+│   │   │   ├── bili_qc_plot.png
+│   │   │   ├── bun_qc_plot.png
+│   │   │   ├── crea_qc_plot.png
+│   │   │   ├── hrt_qc_plot.png
+│   │   │   ├── meanbp_qc_plot.png
+│   │   │   ├── pafi_qc_plot.png
+│   │   │   ├── ph_qc_plot.png
+│   │   │   ├── resp_qc_plot.png
+│   │   │   ├── scoma_qc_plot.png
+│   │   │   ├── slos_qc_plot.png
+│   │   │   ├── sod_qc_plot.png
+│   │   │   ├── sps_qc_plot.png
+│   │   │   ├── temp_qc_plot.png
+│   │   │   ├── totmcst_qc_plot.png
+│   │   │   ├── urine_qc_plot.png
+│   │   │   └── wblc_qc_plot.png
+│   │   ├── sankey_High_MM.png
+│   │   ├── sankey_Low_MM.png
+│   │   ├── sankey_Mid_MM.png
+│   │   ├── snf_eigengap.png
+│   │   ├── snf_lite_K_stability_by_stratum.gif
+│   │   ├── snf_network_High_MM.png
+│   │   ├── snf_network_Low_MM.png
+│   │   ├── snf_network_Mid_MM.png
+│   │   ├── snf_network_spectral_High_MM.png
+│   │   ├── snf_network_spectral_Low_MM.png
+│   │   └── snf_network_spectral_Mid_MM.png
+│   ├── glossary.json
+│   ├── glossary_used.json
+│   ├── mmsp_Dtree/
+│   │   ├── surrogate_high/
+│   │   ├── surrogate_low/
+│   │   └── surrogate_mid/
+│   ├── model_comparisons.csv
+│   ├── outcomes_supporting_365d/
+│   │   ├── figures/
+│   │   └── tables/
+│   ├── qc/
+│   │   ├── qc_meta.json
+│   │   ├── qc_summary.csv
+│   │   └── violations/
+│   │       ├── age_range_violations.csv
+│   │       ├── alb_range_violations.csv
+│   │       ├── pafi_range_violations.csv
+│   │       └── totmcst_range_violations.csv
+│   ├── rulecards_final/
+│   │   ├── high/
+│   │   ├── low/
+│   │   └── mid/
+│   ├── rulecards_final_high_only/
+│   │   ├── high/
+│   │   ├── low/
+│   │   └── mid/
+│   ├── rulecards_rag/
+│   │   ├── high/
+│   │   ├── high_out_remote/
+│   │   ├── low/
+│   │   ├── low_out_remote/
+│   │   ├── mid/
+│   │   ├── mid_out_remote/
+│   │   ├── old/
+│   │   └── run_rulecards_cli_command.txt
+│   ├── snf_high/
+│   ├── snf_high_sensitivity/
+│   ├── snf_low/
+│   ├── snf_low_sensitivity/
+│   ├── snf_mid/
+│   ├── snf_mid_sensitivity/
+│   ├── surrogate_high/
+│   ├── surrogate_low/
+│   ├── surrogate_mid/
+│   └── tables/
+│       ├── cluster_counts.csv
+│       ├── cluster_profiles_C_prevalence.csv
+│       ├── cluster_profiles_P_medians.csv
+│       ├── cox_High_MM.csv
+│       ├── cox_Low_MM.csv
+│       ├── cox_Mid_MM.csv
+│       ├── cox_overview.csv
+│       ├── cox_snflite_clusters_adjusted.csv
+│       ├── cox_zph_all.csv
+│       ├── km_logrank_summary.csv
+│       ├── kw_los_cost.csv
+│       ├── model_selection.csv
+│       ├── model_selection.json
+│       ├── model_selection_summary.csv
+│       ├── snf_assignments.csv
+│       ├── snf_internal_metrics.csv
+│       ├── snf_lite_boot_ari_by_stratum.csv
+│       ├── table_external_prognostic_comparison.csv
+│       ├── table_external_prognostic_cv_folds.csv
+│       ├── table_external_prognostic_cv_summary.csv
+│       ├── table_internal_validity.csv
+│       ├── table_parsimony_cluster_balance.csv
+│       └── table_rules_complexity.csv
+├── src/
 │   ├── __init__.py
-│   ├── make_views.py       # Script for data cleaning, imputation, and view creation
-│   ├── run_mmsp.py         # Path A: Multimorbidity-Stratified Phenotyping
-│   ├── 11_run_snf.py          # Path B: Multi-View Fusion
-│   ├── 20_select_clusters.py  # Stability analysis and final phenotype selection
-│   ├── 30_validate_outcomes.py # External validation (KM curves, LOS/cost tests)
-│   ├── 40_train_surrogate.py  # Training the interpretable surrogate model
-│   ├── 50_generate_rulecard.py# LLM-based rulecard and flowchart generation
-│   └── utils.py             # Helper functions (e.g., plotting, custom metrics)
-│
-├── models/                        # Trained models and related artifacts
-│   ├── final_cluster_model.pkl    # The chosen clustering object (e.g., KMedoids)
-│   ├── surrogate_tree.pkl         # The trained decision tree surrogate
-│   └── llama-3-8b-q4.gguf         # The quantized LLM (or a pointer to it)
-│
-└── reports/               # Final project outputs
-    ├── figures/  
-    │   ├── qc/
-    │	│   ├── alb_qc_plot.png             
-    │	│   ├── pafi_qc_plot.png               
-    │   │   ├── ph_qc_plot.png
-    │   │   └── resp_qc_plot.png                            
-    │   ├── famd_plot.png
-    │   ├── kaplan_meier_survival.png
-    │   └── phenotype_profiles.png
-    ├── tables/ 
-    |   ├── cluster_profiles_summary.csv             
-    |   ├── cox_summary.csv              
-    |   └── KM_logrank_summary.csv 
-    └── article.md         # Draft of the project report (prospective)
+│   ├── __pycache__/
+│   ├── check_clusters.py
+│   ├── clean_data.py
+│   ├── cli.py
+│   ├── cli_rulecard.py
+│   ├── consolidate_snf_winners.py
+│   ├── decision_archive.py
+│   ├── eda_report.py
+│   ├── external_validation.py
+│   ├── fix_y_val.py
+│   ├── flowchart_fallback.py
+│   ├── make_views.py
+│   ├── model_selection.py
+│   ├── normalize_rules.py
+│   ├── outcome_supporting.py
+│   ├── rag_translate_rules.py
+│   ├── retired/
+│   │   ├── create_final_view.py
+│   │   ├── run_mmsp.py
+│   │   └── support_preprocessed_clean.csv
+│   ├── rulecard_validate.py
+│   ├── rules_schema.py
+│   ├── run_mmsp_phase1_pam.py
+│   ├── run_qc.py
+│   ├── run_rulecards_remote.py
+│   ├── run_rulecards_remote_canonical.py
+│   ├── run_rulecards_transformers.py
+│   ├── snf_lite.py
+│   ├── snf_sensitivity.py
+│   └── surrogate_tree.py
+└── venv/
