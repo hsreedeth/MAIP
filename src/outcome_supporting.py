@@ -42,9 +42,9 @@ from lifelines import CoxPHFitter
 LABEL_RE = re.compile(r"^(High_MM|Mid_MM|Low_MM)_(\d+)$")
 
 
-# ---------------------------------------------------------------------
+# 
 # Cluster file validation / alignment
-# ---------------------------------------------------------------------
+# 
 def _ensure_stratum(L: pd.DataFrame) -> pd.DataFrame:
     """
     Ensure clusters table has columns: eid, label, stratum.
@@ -81,9 +81,9 @@ def _ensure_stratum(L: pd.DataFrame) -> pd.DataFrame:
     return L
 
 
-# ---------------------------------------------------------------------
+# 
 # Data loading
-# ---------------------------------------------------------------------
+# 
 def load_all(proc_dir: Path, clusters_file: Path) -> pd.DataFrame:
     C = pd.read_csv(proc_dir / "C_view.csv")
     P = pd.read_csv(proc_dir / "P_view_scaled.csv")
@@ -140,9 +140,9 @@ def add_horizon(df: pd.DataFrame, horizon_days: float | None) -> pd.DataFrame:
     return df
 
 
-# ---------------------------------------------------------------------
+# 
 # Analyses
-# ---------------------------------------------------------------------
+# 
 def write_cluster_counts(df: pd.DataFrame, out_tables: Path) -> None:
     counts = df.groupby(["stratum", "label"]).size().rename("n").reset_index()
     counts.to_csv(out_tables / "cluster_counts.csv", index=False)
@@ -267,9 +267,9 @@ def cox_python_crosscheck(df: pd.DataFrame, out_tables: Path) -> None:
     pd.DataFrame(overview).to_csv(out_tables / "cox_python_overview.csv", index=False)
 
 
-# ---------------------------------------------------------------------
+# 
 # CLI
-# ---------------------------------------------------------------------
+# 
 def main():
     ap = argparse.ArgumentParser(description="Secondary outcome analyses (KM/logrank, LOS/cost, profiles) aligned to a provided cluster file.")
     ap.add_argument("--proc-dir", default="data/01_processed", help="Processed data directory containing C_view/P_view_scaled/S_view/Y_validation CSVs.")

@@ -13,30 +13,30 @@ from sklearn.metrics import (
 )
 from sklearn.metrics import pairwise_distances
 
-# ---------- Paths ----------
+# Paths
 ROOT = Path(__file__).resolve().parents[1]
 PROCD = ROOT / "data" / "01_processed"
 OUTD  = ROOT / "data" / "02_clusters"
 OUTD.mkdir(parents=True, exist_ok=True)
 
-# ---------- Selection & output toggles ----------
+# Selection & output toggles
 STABILITY_TOL     = 0.20   # within 20% of best stability counts as "near-best"
 N_INIT_FINAL      = 20     # best-of-N final PAM restarts to avoid bad local minima
 EMIT_HIGHMM_BOTH  = True   # emit both K=5 and K=6 for High_MM side-by-side
 HIGHMM_BOTH_KS    = [5, 6] # which Ks to emit if EMIT_HIGHMM_BOTH is True
 
-# ---------- Clustering params ----------
+# Clustering params 
 SEED        = 42
 K_RANGE     = range(2, 9)  # 2..8
 BOOTSTRAPS  = 100           # (20–100+) more = slower but stabler stability estimate
 SUBSAMPLE   = 0.80         # bootstrap subsample fraction
 
-# ---------- Multimorbidity strata ----------
+# Multimorbidity strata 
 STRATA_BINS   = [0, 2, 4, math.inf]
 STRATA_LABELS = ["Low_MM", "Mid_MM", "High_MM"]
 
 
-# ============ K-MEDOIDS (PAM) ============
+# K-MEDOIDS (PAM) 
 def kpp_init_from_D(D: np.ndarray, k: int, rng: np.random.Generator) -> np.ndarray:
     """k-medoids++ style init on precomputed distance matrix D (n x n)."""
     n = D.shape[0]
@@ -46,7 +46,7 @@ def kpp_init_from_D(D: np.ndarray, k: int, rng: np.random.Generator) -> np.ndarr
         probs = dist_to_nearest**2
         s = probs.sum()
         if s == 0:
-            # all points identical → pick random new medoid not in medoids
+            # all points identical .. then pick random new medoid not in medoids.
             candidates = np.setdiff1d(np.arange(n), np.array(medoids))
             medoids.append(int(rng.choice(candidates)))
         else:
@@ -118,7 +118,7 @@ def pam_kmedoids_best_of_n(D: np.ndarray, k: int, n_init: int = N_INIT_FINAL, se
     return best_labels, best_medoids
 
 
-# ============ Pipeline helpers ============
+# Pipeline helpers 
 def load_views():
     C = pd.read_csv(PROCD / "C_view.csv").set_index("eid")
     P = pd.read_csv(PROCD / "P_view_scaled.csv").set_index("eid")
@@ -224,7 +224,7 @@ def pick_k_by_rule(summary_rows: list, stability_tol: float = STABILITY_TOL) -> 
     return int(near.iloc[0]["K"])
 
 
-# ============ Main ============
+# main.
 def run():
     np.random.seed(SEED)
     C, P, Y = load_views()
@@ -244,7 +244,7 @@ def run():
             print(f"[SKIP] {s}: too few samples for robust clustering.")
             continue
 
-        # ---- Build stratum matrix and clean it ----
+        # Build stratum matrix and clean it 
         Xs_full = P.loc[ids_s, p_cols].copy()
 
         # Drop near-constant columns *within* this stratum
@@ -263,7 +263,7 @@ def run():
         Xs = Xs_full.values
         print(f"[DEBUG] {s} P columns pre-filter: {len(p_cols)}; post-filter: {Xs_full.shape[1]}; n={n}")
 
-        # ---- PCA with a minimum dimensionality of 2 (but never > #features) ----
+        # PCA with a minimum dimensionality of 2 (but never > #features) 
         # First find how many comps hit ~80% (using an exploratory PCA up to min(20, p))
         p_explore = min(20, Xs.shape[1])
         pca_full = PCA(n_components=p_explore, svd_solver="full", random_state=SEED)
@@ -291,7 +291,7 @@ def run():
         bestK_stab = int(pd.DataFrame(grid).sort_values("stability_ARI", ascending=False).iloc[0]["K"])
         print(f"[SelectK] {s}: chosen K={chosenK} (best-by-stability K={bestK_stab})")
 
-        # ---- Final fit (best-of-N) for the chosen K ----
+        #  Final fit (best-of-N) for the chosen K 
         labels_final, medoids = pam_kmedoids_best_of_n(D, chosenK, n_init=N_INIT_FINAL, seed=SEED + 2024)
         im_final = internal_metrics(Z, labels_final)
 
@@ -318,7 +318,7 @@ def run():
             json.dump(result, f, indent=2)
         results.append(result)
 
-        # ---- Optional: emit High_MM K=5 and K=6 side-by-side ----
+        #  Optional: emit High_MM K=5 and K=6 side-by-side 
         if s == "High_MM" and EMIT_HIGHMM_BOTH:
             present_Ks = {int(r["K"]) for r in grid}
             for k_alt in HIGHMM_BOTH_KS:

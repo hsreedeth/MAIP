@@ -7,9 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# -----------------------------
+
 # Paths
-# -----------------------------
 ROOT_DIR = Path(__file__).resolve().parents[1]
 PROCESSED_DIR = ROOT_DIR / "data" / "01_processed"
 DEFAULT_INPUT = PROCESSED_DIR / "support_preprocessed.csv"   # can override via CLI
@@ -17,9 +16,8 @@ QC_BASE_DIR = ROOT_DIR / "reports" / "qc"
 QC_FIGURE_DIR = QC_BASE_DIR / "figures"
 QC_VIOL_DIR = QC_BASE_DIR / "violations"
 
-# -----------------------------
+
 # QC CONFIGURATION
-# -----------------------------
 QC_CONFIG = {
     # Demographics
     "age":   {"plausible_range": [18, 100], "check_iqr_outliers": True},
@@ -50,9 +48,8 @@ QC_CONFIG = {
     "slos":    {"plausible_range": [0, None], "check_iqr_outliers": True},
 }
 
-# -----------------------------
+
 # Helpers
-# -----------------------------
 def ensure_dirs():
     QC_BASE_DIR.mkdir(parents=True, exist_ok=True)
     QC_FIGURE_DIR.mkdir(parents=True, exist_ok=True)
@@ -114,9 +111,8 @@ def plot_var(df: pd.DataFrame, col: str, min_val, max_val, out_dir: Path):
     plt.close(fig)
     return fig_path
 
-# -----------------------------
+
 # Main QC functions
-# -----------------------------
 def run_qc(input_path: Path, visualize: bool = False, max_print: int = 5):
     ensure_dirs()
 
@@ -131,7 +127,7 @@ def run_qc(input_path: Path, visualize: bool = False, max_print: int = 5):
     if not eid_present:
         print("[WARN] 'eid' not found—violation exports will omit patient IDs.")
 
-    # Coerce configured vars to numeric
+    # force configured vars to numeric.
     vars_to_check = [c for c in QC_CONFIG.keys() if c in df.columns]
     df = coerce_numeric(df, vars_to_check)
 
@@ -205,9 +201,8 @@ def run_qc(input_path: Path, visualize: bool = False, max_print: int = 5):
 
     return 0
 
-# -----------------------------
+
 # CLI
-# -----------------------------
 def main():
     ap = argparse.ArgumentParser(description="Run QC on SUPPORT-II preprocessed data.")
     ap.add_argument("--input", type=str, default=str(DEFAULT_INPUT),

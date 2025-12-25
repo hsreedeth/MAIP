@@ -13,7 +13,7 @@
 # from sklearn.preprocessing import StandardScaler
 
 
-# # --- Configuration ---
+# #  Configuration 
 # ROOT_DIR = Path(__file__).resolve().parents[1]
 # reg_path = ROOT_DIR / 'data' / 'artifact_registry.json'
 # RAW_DATA_PATH = ROOT_DIR / 'data' / '00_raw' / 'support2.csv'
@@ -57,14 +57,14 @@
 
 #     generate_report(data, "BEFORE PREPROCESSING")
 
-#     # --- Step 0: Ensure a stable ID ---
+#     #  Step 0: Ensure a stable ID 
 #     if 'eid' not in data.columns:
 #         data.insert(0, 'eid', range(1, len(data) + 1))  
 
 #     data.loc[data["totmcst"] < 0, "totmcst"] = np.nan
 
 
-#     # --- Step 1: Gentle initial fills for a few physiologic vars (optional domain priors) ---
+#     #  Step 1: Gentle initial fills for a few physiologic vars (optional domain priors) 
 #     normal_values = {
 #         'alb': 3.5, 'pafi': 333.3, 'bili': 1.01, 'crea': 1.01,
 #         'bun': 6.51, 'wblc': 9, 'urine': 2502
@@ -85,18 +85,18 @@
 #                 data = data.dropna(subset=low_missing_cols)
 #                 print(f"[RowDrop] Removed {before - len(data)} rows due to NA in low-missing P columns: {low_missing_cols}")
 
-#     # --- Step 2a: Build ADL surrogate ---
+#     #  Step 2a: Build ADL surrogate 
 #     if 'adlp' in data.columns and 'adls' in data.columns:
 #         data['adlp_s'] = data['adlp'].fillna(data['adls'])
 #     else:
 #         # if either missing, just ensure column exists (keeps pipeline running)
 #         data['adlp_s'] = data.get('adlp', pd.Series(index=data.index))
 
-#     # --- Step 2b: Drop redundant columns (keep your rationale) ---
+#     #  Step 2b: Drop redundant columns (keep your rationale) 
 #     cols_to_drop = ['totcst', 'charges', 'surv2m', 'prg2m', 'adls', 'adlp', 'adlsc']
 #     data = data.drop(columns=[c for c in cols_to_drop if c in data.columns], errors='ignore')
 
-#     # --- Step 3: Encode categorical/ordinal ---
+#     #  Step 3: Encode categorical/ordinal 
 #     # sfdm2
 #     if 'sfdm2' in data.columns:
 #         sfdm2_map = {"<2 mo. follow-up": 5, "no(M2 and SIP pres)": 1,
@@ -156,7 +156,7 @@
 #             data[f'dnr_{d.replace(" ", "_")}'] = (data['dnr'] == d).astype('Int64')
 #         data = data.drop(columns=['dnr'])
 
-#     # --- Step 4: MICE on X only (exclude eid + outcomes) ---
+#     #  Step 4: MICE on X only (exclude eid + outcomes) 
 #     # Split into X (features) and Y (validation/outcomes)
 #     id_col = 'eid'
 #     y_cols_present = [c for c in Y_COLS if c in data.columns]
@@ -180,7 +180,7 @@
 
 #     processed_df = pd.concat([X_id, X_imp, Y], axis=1)
 
-#     # --- Step 4a: Round/clip discrete fields ---
+#     #  Step 4a: Round/clip discrete fields 
 #     # define discrete / bounded fields present
 #     discrete_01 = [c for c in processed_df.columns if c.startswith(('race_', 'dnr_', 'dzgroup_', 'dzclass_'))]
 #     for c in ['sex']:
@@ -207,7 +207,7 @@
 #             orig_max = processed_df['adlp_s'].max(skipna=True)
 #         processed_df['adlp_s'] = processed_df['adlp_s'].round().clip(lower=0, upper=orig_max if pd.notnull(orig_max) else None)
 
-#     # --- Step 4b: Drop dzclass_* (pure unions of dzgroup_*) ---
+#     #  Step 4b: Drop dzclass_* (pure unions of dzgroup_*) 
 #     dzclass_cols = [c for c in processed_df.columns if c.startswith("dzclass_")]
 #     if dzclass_cols:
 #         print(f"[Cleanup] Dropping redundant dzclass_* columns: {dzclass_cols}")
@@ -216,7 +216,7 @@
 #     generate_report(processed_df, "AFTER PREPROCESSING (X-imputed, Y untouched)")
 
 
-#     # --- Step 5: Build views (carry eid!) ---
+#     #  Step 5: Build views (carry eid!) 
 #     C_view_cols = ['eid', 'num.co', 'diabetes', 'dementia'] + \
 #                   [c for c in processed_df.columns if c.startswith('dzgroup_')] + \
 #                   (['ca'] if 'ca' in processed_df.columns else [])
@@ -273,7 +273,7 @@ from sklearn.impute import IterativeImputer
 from sklearn.linear_model import BayesianRidge
 from sklearn.preprocessing import StandardScaler
 
-# --- Configuration ---
+#  Configuration 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 RAW_DATA_PATH = ROOT_DIR / 'data' / '00_raw' / 'support2.csv'
 PROCESSED_PATH = ROOT_DIR / 'data' / '01_processed'
@@ -316,11 +316,11 @@ def run_preprocessing(save_output: bool = True, strict_row_drop: bool = False) -
 
     generate_report(data, "BEFORE PREPROCESSING")
 
-    # --- Step 0: Ensure a stable ID ---
+    #  Step 0: Ensure a stable ID 
     if 'eid' not in data.columns:
         data.insert(0, 'eid', range(1, len(data) + 1))  # FIX: len(data), not len(df)
 
-    # --- Step 1: Imputation prescribed by data custodians ---
+    #  Step 1: Imputation prescribed by data custodians 
     normal_values = {
         'alb': 3.5, 'pafi': 333.3, 'bili': 1.01, 'crea': 1.01,
         'bun': 6.51, 'wblc': 9, 'urine': 2502
@@ -341,18 +341,18 @@ def run_preprocessing(save_output: bool = True, strict_row_drop: bool = False) -
                 data = data.dropna(subset=low_missing_cols)
                 print(f"[RowDrop] Removed {before - len(data)} rows due to NA in low-missing P columns: {low_missing_cols}")
 
-    # --- Step 2a: Build an ADL surrogate ---
+    #  Step 2a: Build an ADL surrogate 
     if 'adlp' in data.columns and 'adls' in data.columns:
         data['adlp_s'] = data['adlp'].fillna(data['adls'])
     else:
         # if either missing, just ensure column exists (keeps pipeline running)
         data['adlp_s'] = data.get('adlp', pd.Series(index=data.index))
 
-    # --- Step 2b: Drop redundant columns  ---
+    #  Step 2b: Drop redundant columns  
     cols_to_drop = ['totcst', 'charges', 'surv2m', 'prg2m', 'adls', 'adlp', 'adlsc']
     data = data.drop(columns=[c for c in cols_to_drop if c in data.columns], errors='ignore')
 
-    # --- Step 3: Encode categorical/ordinal ---
+    #  Step 3: Encode categorical/ordinal 
     # sfdm2
     if 'sfdm2' in data.columns:
         sfdm2_map = {"<2 mo. follow-up": 5, "no(M2 and SIP pres)": 1,
@@ -416,7 +416,7 @@ def run_preprocessing(save_output: bool = True, strict_row_drop: bool = False) -
             data[f'dnr_{d.replace(" ", "_")}'] = (data['dnr'] == d).astype('Int64')
         data = data.drop(columns=['dnr'])
 
-    # --- Step 4: MICE on X only (exclude eid + outcomes) ---
+    #  Step 4: MICE on X only (exclude eid + outcomes) 
     # Split into X (features) and Y (validation/outcomes)
     id_col = 'eid'
     y_cols_present = [c for c in Y_COLS if c in data.columns]
@@ -447,7 +447,7 @@ def run_preprocessing(save_output: bool = True, strict_row_drop: bool = False) -
     processed_df = processed_df.loc[:, ~processed_df.columns.duplicated()]
 
 
-    # --- Step 4a: Round/clip discrete fields ---
+    #  Step 4a: Round/clip discrete fields 
     # define discrete / bounded fields present
     discrete_01 = [c for c in processed_df.columns if c.startswith(('race_', 'dnr_', 'dzgroup_', 'dzclass_'))]
     for c in ['sex']:
@@ -474,7 +474,7 @@ def run_preprocessing(save_output: bool = True, strict_row_drop: bool = False) -
             orig_max = processed_df['adlp_s'].max(skipna=True)
         processed_df['adlp_s'] = processed_df['adlp_s'].round().clip(lower=0, upper=orig_max if pd.notnull(orig_max) else None)
 
-    #     # --- Step 4b: Drop dzclass_* (pure unions of dzgroup_*) ---
+    #     #  Step 4b: Drop dzclass_* (pure unions of dzgroup_*) 
     dzclass_cols = [c for c in processed_df.columns if c.startswith("dzclass_")]
     if dzclass_cols:
         print(f"[Cleanup] Dropping redundant dzclass_* columns: {dzclass_cols}")
@@ -482,7 +482,7 @@ def run_preprocessing(save_output: bool = True, strict_row_drop: bool = False) -
 
     generate_report(processed_df, "AFTER PREPROCESSING (X-imputed, Y untouched)")
 
-    # --- Step 5: Build views (carry eid!) ---
+    #  Step 5: Build views (carry eid!) 
     C_view_cols = ['eid', 'num.co', 'diabetes', 'dementia'] + \
                   [c for c in processed_df.columns if c.startswith(('dzgroup_', 'dzclass_'))] + \
                   (['ca'] if 'ca' in processed_df.columns else [])

@@ -46,9 +46,7 @@ from src.run_mmsp_phase1_pam import pam_kmedoids_best_of_n as pam_kmedoids_best_
 from src.run_mmsp_phase1_pam import pick_k_by_rule as pick_k_by_rule
 
 
-# -----------------------------
 # I/O utilities
-# -----------------------------
 def load_view(path: str, id_col: str) -> Tuple[np.ndarray, pd.DataFrame]:
     df = pd.read_csv(path)
     if id_col not in df.columns:
@@ -77,9 +75,8 @@ def align_views(
     return common, out_X
 
 
-# -----------------------------
+
 # Similarity builders
-# -----------------------------
 def _split_types(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Return numeric_df, categorical_df based on pandas dtypes."""
     num_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
@@ -107,7 +104,7 @@ def gower_affinity(df: pd.DataFrame,
     dist = np.zeros((n, n), dtype=np.float64)
     total_w = 0.0
 
-    # ----- numeric part -----
+    # numeric
     if X_num.shape[1] > 0:
         Xn = X_num.to_numpy(dtype=np.float64)
         mins = np.nanmin(Xn, axis=0)
@@ -117,11 +114,11 @@ def gower_affinity(df: pd.DataFrame,
         Xn_scaled = (Xn - mins) / ranges  # each col in [0,1]
         D_num = pairwise_distances(Xn_scaled, metric="manhattan")  # in [0, #num_cols]
         # average per numeric feature
-        w = 1.0  # average across numeric columns by dividing by count
+        w = 1.0  # avg across numeric columns by dividing by count
         dist += (D_num / float(X_num.shape[1])) * w
         total_w += w
 
-    # ----- categorical / binary part -----
+    # categorical / binary parts
     if X_cat.shape[1] > 0:
         for col in X_cat.columns:
             s = X_cat[col]
@@ -141,7 +138,7 @@ def gower_affinity(df: pd.DataFrame,
                 m11 = (v_row & v_col).astype(np.float64)
                 m10 = (v_row & (1 - v_col)).astype(np.float64)
                 m01 = ((1 - v_row) & v_col).astype(np.float64)
-                denom = m11 + m10 + m01  # pairs with at least one '1'
+                denom = m11 + m10 + m01  # pairs with at least one 1
 
                 d = np.zeros_like(denom, dtype=np.float64)
                 np.divide(m10 + m01, denom, out=d, where=(denom > 0))
@@ -163,7 +160,7 @@ def gower_affinity(df: pd.DataFrame,
                 dist += d
                 total_w += 1.0
 
-    # ----- finalize -----
+    # fin.
     if total_w == 0.0:
         raise ValueError("No features available to compute similarity.")
 
@@ -243,9 +240,8 @@ def snf_fuse(affinities, k, iters, alpha):
     return fused
 
 
-# -----------------------------
-# K selection & clustering
-# -----------------------------
+
+# K selection & clustering (maybe a bootscope plot would be cool here.)
 def eigengap_k(
     fused: np.ndarray,
     kmin: int,
@@ -258,6 +254,7 @@ def eigengap_k(
     Suggest K via eigengap on a *sparsified* normalized Laplacian
     (keeps computation tractable and aligns with graph-clustering practice).
     Returns (K_suggested or None, eigenvalues array sorted ascending).
+    Code adapted from https://sh-tsang.medium.com/tutorial-normalized-graph-laplacian-f74593feace7
     """
     # Build symmetric KNN graph from fused, then normalized Laplacian
     A = knn_mask(fused, k=knn_for_laplacian, include_self=True)
@@ -269,7 +266,7 @@ def eigengap_k(
     d = np.asarray(A.sum(axis=1)).ravel()
     d[d == 0.0] = 1.0
     D_inv_sqrt = sparse.diags(1.0 / np.sqrt(d))
-    # Normalized Laplacian L = I - D^{-1/2} A D^{-1/2}
+    # Normalized Laplacian L = I - D^{-1/2} A D^{-1/2} https://sh-tsang.medium.com/tutorial-normalized-graph-laplacian-f74593feace7
     A_sp = sparse.csr_matrix(A)
     L = sparse.identity(A.shape[0], dtype=np.float64) - D_inv_sqrt @ A_sp @ D_inv_sqrt
 
@@ -331,9 +328,8 @@ def cluster_and_score_with_pam(fused, ids, kmin, kmax, seed=42):
     return chosenK, pd.DataFrame(results), labels_map[chosenK]
 
 
-# -----------------------------
+
 # Main
-# -----------------------------
 def main():
     ap = argparse.ArgumentParser(description="SNF-lite (Multi-View Fusion) clustering")
     ap.add_argument("--cview", required=True, help="Path to C_view.csv")
@@ -398,13 +394,13 @@ def main():
     bad_cols = set(Xc.columns) & {"death","hospdead","d.time","slos","hday","sfdm2","surv6m","prg6m","dnrday","totmcst"}
     assert not bad_cols, f"Outcome(s) found in C/S view: {bad_cols}"
 
-    # 2) Build affinities per view
+    # 2. Build affinities per view
     A_c = gower_affinity(Xc)
     A_s = gower_affinity(Xs)
     A_p = rbf_affinity(Xp, k_local=7)  # or any k_local you prefer
 
 
-    # 3) SNF-lite fusion
+    # 3 SNF-lite fusion
     fused = snf_fuse([A_c, A_p, A_s], k=args.knn, iters=args.iters, alpha=args.alpha)
 
     # 4) K suggestion via eigengap
@@ -415,12 +411,12 @@ def main():
         fused, args.kmin, args.kmax, knn_for_laplacian=args.lap_knn, fig_path=str(eigengap_fig)
     )
 
-    # 5) Cluster across K range & score
+    # 5 Cluster across K range & score
     K_star, metrics_df, labels = cluster_and_score_with_pam(
         fused=fused, ids=ids, kmin=args.kmin, kmax=args.kmax, seed=args.seed
     )
 
-    # Optional: if eigengap suggestion is "close enough", prefer it (within 5% of best Silhouette)
+    # Optional: if eigengap suggestion is "close enough" prefer it (within 5% of best Silhouette)
     if K_suggest is not None and (args.kmin <= K_suggest <= args.kmax):
         sil_best = metrics_df.loc[metrics_df["K"] == K_star, "silhouette"].values[0]
         sil_sug = metrics_df.loc[metrics_df["K"] == K_suggest, "silhouette"].values[0]
@@ -431,7 +427,7 @@ def main():
             km = KMeans(n_clusters=K_star, n_init=20, random_state=args.seed)
             labels = km.fit_predict(emb)
 
-    # 6) Save outputs
+    # 6. Save outputs.
     models_dir = Path(args.out_models)
     reports_dir = Path(args.out_reports)
     (reports_dir / "tables").mkdir(parents=True, exist_ok=True)

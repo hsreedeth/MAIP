@@ -48,7 +48,7 @@ def load_X(cview, pview, sview, id_col="eid"):
     # fill any nullable dtypes / NA (should be minimal post-imputation)
     X = X.fillna(0)
 
-    # drop zero-variance columns
+    # drop zero-variance columns. there are none its been tested. but for reproducibility's sake.
     nunique = X.nunique(dropna=False)
     keep = nunique[nunique > 1].index.tolist()
     X = X[keep]
@@ -57,13 +57,13 @@ def load_X(cview, pview, sview, id_col="eid"):
 
 def load_y(assign_csv, stratum=None, id_col="eid"):
     A = pd.read_csv(assign_csv)
-    # allow either 'cluster' or 'cluster_id'
+    # allow either 'cluster' or 'cluster_id', have to get this consistent.
     if "cluster" in A.columns:
         cl = A[["eid","cluster"]].copy()
         cl["cluster"] = cl["cluster"].astype(int)
     elif "cluster_id" in A.columns:
         cl = A[["eid","cluster_id"]].copy()
-        # cluster_id might be 0..K-1 ints; if strings like "Low_MM_1", keep as-is
+        # cluster_id might be 0..K-1 ints. if strings like "Low_MM_1", keep as it is.
         if pd.api.types.is_integer_dtype(cl["cluster_id"]):
             cl.rename(columns={"cluster_id":"cluster"}, inplace=True)
         else:
@@ -128,9 +128,9 @@ def fit_full(X, y, max_depth, min_samples_leaf, criterion, class_weight, seed):
 
     clf = DecisionTreeClassifier(
         max_depth=max_depth,
-        min_samples_leaf=min_samples_leaf,  # int or float fraction OK
+        min_samples_leaf=min_samples_leaf,  # int or float fraction ok
         criterion=criterion,                # "gini" or "entropy"
-        class_weight=class_weight,          # None | "balanced" | dict
+        class_weight=class_weight,          # opts are: None | "balanced" | dict
         random_state=seed,
     )
 
@@ -294,7 +294,7 @@ def main():
 
     # Fit on full data, export artifacts
     clf, le = fit_full(X_a, y, max_depth=args.max_depth, min_samples_leaf=args.min_samples_leaf, criterion = args.criterion, class_weight = class_weight, seed=args.seed)
-    # --- Persist model + encoder + metadata ---
+    # Persist model + encoder + metadata
     models_dir = out_dir / "models"
     models_dir.mkdir(parents=True, exist_ok=True)
 
@@ -323,7 +323,7 @@ def main():
     dump({"model": clf, "label_encoder": le, "meta": meta},
         models_dir / "surrogate_tree.joblib")
 
-    # (optional) human-readable sidecar
+    # (opt.) human-readable sidecar
     (models_dir / "surrogate_tree.meta.json").write_text(json.dumps(meta, indent=2))
     print(f"[Surrogate] Saved model bundle -> {models_dir/'surrogate_tree.joblib'}")
 
@@ -332,14 +332,14 @@ def main():
     export_text_rules(clf, X_a.columns, class_names, out_dir / "tables" / "tree_rules.txt")
     tree_to_rules_json(clf, list(X_a.columns), list(class_names), out_dir / "tables" / "tree_rules.json", stratum=args.stratum)
 
-    # LLM-ready ruleset (preferred by cli_rulecard)
+    # LLM-ready ruleset ( the one thats preferred by cli_rulecard).
     feature_names = list(X_a.columns)
     class_names   = list(class_names)  # ensure list
     rules_llm     = _extract_rules_for_llm(clf, feature_names, class_names)
 
     payload_core = {
         "stratum": args.stratum,
-        "K": None,  # fill if you want to echo the selected K for this stratum
+        "K": None,  # totslly optional filled by cli_rulecard if needed
         "class_names": class_names,
         "feature_names": feature_names,
         "rules": rules_llm,
@@ -350,13 +350,13 @@ def main():
     (out_dir / "tables" / "rule_ruleset.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
-    # Full-data in-sample predictions → confusion matrix (for a quick sense of fit)
+    # Full-data in-sample predictions -> confusion matrix (for a quick sense of fit)
     y_pred = le.inverse_transform(clf.predict(X_a))
     save_confmat(y, y_pred, labels=list(class_names),
                  out_csv=out_dir / "tables" / "confusion_matrix.csv",
                  out_png=out_dir / "figures" / "confusion_matrix.png")
 
-    # Feature importances (rough guide only for trees)
+    # Feature importances (rough guide only for trees). approximations.
     pd.DataFrame({
         "feature": X_a.columns,
         "importance": clf.feature_importances_

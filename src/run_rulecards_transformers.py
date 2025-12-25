@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# This was an experiment to generate rulecards using LLMs.
+# It is not part of the main pipeline.  It did not produce satisfactory
+# results compared to hand-crafted rulecards with RAG STrat, so it is no longer used.
+
 import json
 from pathlib import Path
 

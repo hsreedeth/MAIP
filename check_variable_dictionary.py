@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-# Paths to your surrogate rule JSONs
+# Paths to surrogate rule JSONs
 RULE_FILES = [
     Path("reports/surrogate_high/tables/rule_ruleset.json"),
     Path("reports/surrogate_mid/tables/rule_ruleset.json"),
@@ -10,12 +10,12 @@ RULE_FILES = [
 
 VAR_DICT_PATH = Path("rag_corpus/variable_dictionary.json")
 
-# ---- collect all features used by any surrogate ----
+# collect all features used by any surrogate.
 all_features = set()
 
 for p in RULE_FILES:
     obj = json.loads(p.read_text(encoding="utf-8"))
-    # safest: trust feature_names *and* scan rule paths
+    # strat here is to trust feature_names and scan rule paths
     if "feature_names" in obj:
         all_features.update(obj["feature_names"])
     if "rules" in obj:
@@ -27,7 +27,7 @@ for p in RULE_FILES:
 
 print(f"Total unique features used by surrogates: {len(all_features)}")
 
-# ---- load variable dictionary ----
+# load var dictionary
 var_dict = json.loads(VAR_DICT_PATH.read_text(encoding="utf-8"))
 
 # ignore meta keys like "_meta"

@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 import yaml
 from pathlib import Path
 
-# --- Configuration ---
+#  Configuration 
 # Use pathlib to make file paths robust and independent of the OS.
 # This script assumes it's in 'src/', so we navigate up one level to find the project root.
 ROOT_DIR = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = ROOT_DIR / 'support_schema.yml'
 RAW_DATA_PATH = ROOT_DIR / 'data' / '00_raw' / 'support2.csv'
 
-# --- Core Functions ---
+#  Core Functions 
 
 def load_schema(path=SCHEMA_PATH):
     """

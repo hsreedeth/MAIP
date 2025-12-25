@@ -4,7 +4,7 @@
 SNF-lite sensitivity: stability-ARI vs hyperparameters (one-page figure).
 
 Vary one hyperparameter at a time (knn, iters, alpha, lap_knn), hold others fixed.
-Compute fused graph -> spectral embedding -> PAM (k-medoids) stability on K (default: 3).
+Compute fused graph to spectral embedding to PAM (k-medoids) stability on K (default: 3).
 Outputs CSV of results + a single 2x2 figure.
 """
 
@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import pairwise_distances
 from sklearn.manifold import spectral_embedding
 
-# reuse your existing implementations
+# these are reused. existing implementations.
 from src.snf_lite import (
     load_view, align_views, gower_affinity, rbf_affinity,
     knn_mask, row_normalize, symmetrize, snf_fuse, eigengap_k
@@ -59,14 +59,14 @@ def main():
     ap.add_argument("--stratum-file", help="CSV with eid + stratum")
     ap.add_argument("--stratum", choices=["Low_MM","Mid_MM","High_MM"])
 
-    # baseline (use what you ran last)
+    # baseline 
     ap.add_argument("--K", type=int, default=3)
     ap.add_argument("--knn", type=int, default=15)
     ap.add_argument("--iters", type=int, default=20)
     ap.add_argument("--alpha", type=float, default=0.7)
     ap.add_argument("--lap-knn", type=int, default=15)
 
-    # sweep grids (feel free to tweak)
+    # sweep grids (completely tweakable)
     ap.add_argument("--grid-knn", type=int, nargs="+", default=[5,10,15,20,25,30])
     ap.add_argument("--grid-iters", type=int, nargs="+", default=[5,10,15,20,30])
     ap.add_argument("--grid-alpha", type=float, nargs="+", default=[0.3,0.5,0.7,0.9])
@@ -89,7 +89,7 @@ def main():
     ids_s, Xs = load_view(args.sview, args.id_col)
     ids, (Xc, Xp, Xs) = align_views([ids_c, ids_p, ids_s], [Xc, Xp, Xs])
 
-    # optional: restrict to a stratum
+    # optionally try restrict to a stratum
     if args.stratum_file and args.stratum:
         s = pd.read_csv(args.stratum_file)
         keep = set(s.loc[s["stratum"] == args.stratum, args.id_col].values.tolist())
@@ -121,7 +121,7 @@ def main():
                                     alpha=val, lap_knn=base["lap_knn"], seed=args.seed)
         rows.append({"param":"alpha","value":val,"stability_ARI":stab})
 
-    # sweep lap_knn (it only affects eigengap normally, but include to stunt on these critiques)
+    # sweep lap_knn (it only affects eigengap normally(maybe testing?))
     for val in args.grid_lap_knn:
         stab = stability_for_params(Xc, Xp, Xs, K=base["K"], knn=base["knn"], iters=base["iters"],
                                     alpha=base["alpha"], lap_knn=val, seed=args.seed)
@@ -166,7 +166,7 @@ def main():
 
     panels = [("knn", axes[0]), ("iters", axes[1]), ("alpha", axes[2]), ("lap_knn", axes[3])]
 
-    # common y-axis range (tweak if needed)
+    # common y-axis range (tweakABLE)
     YMIN, YMAX = 0.40, 0.50
     global_med = df["stability_ARI"].median()
 

@@ -40,7 +40,7 @@ def build_rulecards(
 
     project_root = Path(__file__).resolve().parents[1]  # repo root (.. from src/cli.py)
 
-    # --- 1. Ensure surrogate trees exist for each stratum --------------------
+    #  1. Ensure surrogate trees exist for each stratum 
     for label in strata:
         # Expect labels like "High_MM", "Mid_MM", "Low_MM"
         base = label.split("_")[0].lower()  # "High_MM" -> "high"
@@ -76,7 +76,7 @@ def build_rulecards(
         if not rule_json.exists():
             raise RuntimeError(f"Expected rule_ruleset.json not found for {label}: {rule_json}")
 
-    # --- 2. Rebuild RAG prompts for each stratum ----------------------------
+    #  2. Rebuild RAG prompts for each stratum 
     prompt_root = project_root / "reports" / "rulecards_rag"
     variable_dict = project_root / "rag_corpus" / "variable_dictionary.json"
     style_guide = project_root / "rag_corpus" / "style_guide.md"
@@ -125,7 +125,7 @@ def build_rulecards(
         ]
     )
 
-    # --- 4. QC: coverage, thresholds, feature alignment, synthetic checks ----
+    #  4. QC: coverage, thresholds, feature alignment, synthetic checks 
     for label in strata:
             base = label.split("_")[0].lower()
             surrogate_dir  = project_root / "reports" / f"surrogate_{base}"
