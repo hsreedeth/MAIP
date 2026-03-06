@@ -4,7 +4,7 @@
 
 # MAIP: Multimorbidity-Aware ICU Phenotyping
 
-This repository contains the full, auditable pipeline we use to derive interpretable ICU phenotypes from multimodal data, translate surrogate decision-tree rules into clinician-facing “rulecards,” and validate those translations end to end. The code is designed for repeatable analysis, deterministic prompt construction, and automated QC of every generated artifact.
+This repository contains the full, verifiable pipeline we use to derive interpretable ICU phenotypes from multidimensional data, translate surrogate decision-tree rules (extrapolated to understand cluster assignments) into clinician facing rulecards and validate those translations end to end. The code is designed for reproducible analysis, deterministic prompt construction and automated QC of every generated artifact.
 
 ## Key capabilities
 - **Data preparation and clustering**: Build cleaned, multi-view feature sets and run Similarity Network Fusion (SNF) clustering to obtain multimorbidity strata.
